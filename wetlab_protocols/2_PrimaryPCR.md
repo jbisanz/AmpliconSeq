@@ -35,6 +35,9 @@ Another advantage of this amplification strategy is that you can mix and match 1
 - [ ] Run protocol. **Estimated time of completion: XXXXXXXX**
 - [ ] After qPCR run is done, transfer plates to -20˚C if processing is going to be paused.
 
+## QC
+A successful amplification curve should had formed for all samples, and no curves should be observed for negative controls (**Figure 2**). Optionally, a 1% agarose gel can be used to spot check some amplifications. Note: undiluted samples will be found in every other row starting in columns A1:A12.
+
 ## Figures
 
 ![fig1](https://github.com/jbisanz/AmpliconSeq/blob/master/images/primaryPCRlayout.png)
