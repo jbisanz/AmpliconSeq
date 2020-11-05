@@ -2,7 +2,7 @@
  A set of protocols and pipelines for construction and analysis of 16S rRNA amplicon libraries. Currently Under Construction!!
 
 ## Wet Lab Protocols
-<br>Step 1: [DNA Extraction](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/1_DNAExtraction.md)
+Step 1: [DNA Extraction](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/1_DNAExtraction.md)
 <br>Step 2: [Primary PCR](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/2_PrimaryPCR.md)
 <br>Step 3: [Indexing PCR](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/3_IndexingPCR.md)
 <br>Step 4: [Pooling and Clean Up](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/4_Pooling.md)
