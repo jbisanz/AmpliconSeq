@@ -36,17 +36,21 @@ def run(protocol: protocol_api.ProtocolContext):
 		right_pipette.aspirate(1, gDNA['A'+str(i)])
 		right_pipette.dispense(1, primarypcr['A'+str(i)])
 		right_pipette.mix(10, 5, primarypcr['A'+str(i)]) # mix 10x by pipetting up and down 5ul
+		right_pipette.touch_tip()
 		#transfer down one row
 		right_pipette.aspirate(1, primarypcr['A'+str(i)])
 		right_pipette.dispense(1, primarypcr[chr(ord('A') + 1)+str(i)]) #chr(ord('A') + 1) gets the next letter in the alphabet
 		right_pipette.mix(10, 5, primarypcr[chr(ord('A') + 1)+str(i)])
+		right_pipette.touch_tip()
 		#transfer over 12 columns
 		right_pipette.aspirate(1, primarypcr[chr(ord('A') + 1)+str(i)])
 		right_pipette.dispense(1, primarypcr['A'+str(i+12)])
 		right_pipette.mix(10, 5, primarypcr['A'+str(i+12)])
+		right_pipette.touch_tip()
 		#transfer down one column again
 		right_pipette.aspirate(1, primarypcr['A'+str(i+12)])
 		right_pipette.dispense(1, primarypcr[chr(ord('A') + 1)+str(i+12)])
 		right_pipette.mix(10, 5, primarypcr[chr(ord('A') + 1)+str(i+12)])
+		right_pipette.touch_tip()
 		#drop tip and move to next column on original plate
 		right_pipette.drop_tip() 
