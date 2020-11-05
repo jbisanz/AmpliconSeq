@@ -1,7 +1,7 @@
 # Protocol 1 - HTP DNA Extraction
 
 ## Theory
-Ideally we want a high-throughput extraction method that is scalable and would allow for direct sequencing and qPCR analysis that has internal controls to ensure accuracy and reproducibility of microbial profiles. After testing a number of protocols, we have been using the ZymoBIOMICS magnetic capture protocol which is scalable and can be partially automated. While yeilds from fecal are on the low side ~10ng/ul, sequencing of controls shows even lysis and it is possible to recover extremely low concentrations of bacteria in low biomass samples. **To facilitate downstream analysis, a template is provided in resources/TrackingSheet.xlsx. Use this file to layout your DNA extractions.** Ideally each plate should include at least 2 negative controls (just extracting water) and a positive control (ex. zymo community standard). Randomly layout negative and positive controls on plate and avoid laying out samples both within and between plates following experimental variables. For example: do not put all disease samples on one plate, and controls on another as this could introduce a false signal due to batch effects. Note, either lysing plates/strips or individual tubes can be used (see ordering information below); however, individual tubes are recommended if cross contamination is unacceptable in study design. The Biospec Mini-beadbeater-96 can lyse 48 samples at a time.
+Ideally we want a high-throughput extraction method that is scalable and would allow for direct sequencing and qPCR analysis that has internal controls to ensure accuracy and reproducibility of microbial profiles. After testing a number of protocols, we have been using the ZymoBIOMICS magnetic capture protocol which is scalable and can be partially automated. While yeilds from fecal are on the low side ~10ng/ul, sequencing of controls shows even lysis and it is possible to recover extremely low concentrations of bacteria in low biomass samples. **To facilitate downstream analysis, a template is provided in resources/TrackingSheet.xlsx. Use this file to layout your DNA extractions.** Ideally each plate should include at least 2 negative controls (just extracting water) and a positive control (ex. zymo community standard). Randomly layout negative and positive controls on plate and avoid laying out samples both within and between plates following experimental variables. For example: do not put all disease samples on one plate, and controls on another as this could introduce a false signal due to batch effects. Note, either lysing plates/strips or individual tubes can be used (see ordering information below); however, individual tubes are recommended if cross contamination is unacceptable in study design. The Biospec Mini-beadbeater-96 can lyse 48 samples at a time. Yield is sufficient for amplicon or Nextera-style metagenomic libraries as desired.
 
 *Note: Before starting, ensure you have all reagents. Non-communical reagents are indicated below.*
 
@@ -34,7 +34,13 @@ Ideally we want a high-throughput extraction method that is scalable and would a
 - [ ] Transfer 200 µL supernatant to 2 mL deep-well plate (BindingPlate).
 <br>*Note: optional stoping point before carrying on to automated cleanup
 - [ ] Step up OT-2 according to **Figure 1**.
+- [ ] Download ot2_scripts/1_ZymoMagWash.py and load into opentrons app. If not extracting entire plate, adjust line 18 (wells_to_extract= ....).
+- [ ] Calibrate all deck positions
+- [ ] Run protocol. **Expected Run Time = XXXXXXXXXXXXX min**
+- [ ] Take gDNA forward for primary PCR
 
+## QC
+Spot check samples and negative controls using Nanodrop and/or Qubit. Successful (high biomass) samples should be >5ng/µL with a 260/280>1.6 and 260/230>1.4.  If the 260/230 is <1.4, Nanodrop quantification is not accurate and Qubit should be used instead. **Yield is not an indicator of evenness of extraction.**
 
 
 ![Fig1](../images/zymolayout.png?)
