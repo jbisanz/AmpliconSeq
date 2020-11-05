@@ -35,6 +35,8 @@ Another advantage of this amplification strategy is that you can mix and match 1
 - [ ] Run protocol. **Estimated time of completion: XXXXXXXX**
 - [ ]
 
+![fig1](https://github.com/jbisanz/AmpliconSeq/blob/master/images/primaryPCRlayout.png)
+**Figure 1**. OT-2 deck positions for primary PCR. **Position 1:** gDNA from Protocol 1 in skirted biorad 96 well plate. **Position 2:** 384 biorad qPCR plate. **Position 4 and 7:** 20ul filter tips. **Position 5:** Mastermix in the first column of 12-well reservoir.
 
 **Table 1. Primers for primary PCR**
 **Primer name** | **Marker gene** | **Target region** | **Sequence**
@@ -74,10 +76,11 @@ Template | 1.0 | 420
 Cycle |	Temperature (˚C)  | Time
 ------|-------------------|------
 Initial Denaturation   |	95	| 5 min
-20 cycles:
+22 cycles\*:
 Denature | 98˚C | 20 sec
 Anneal | 55˚C	| 15 sec
 Extend | 72˚C | 60 sec
 Holding	| 4˚C	Hold | 0 sec
+
 \**22 cycles is a good starting point here. With V4 primers, primer dimers will occur by cycle 25 and will make judging the success of amplification difficult.*
 
