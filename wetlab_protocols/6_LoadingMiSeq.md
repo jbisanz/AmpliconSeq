@@ -10,7 +10,7 @@ Because we are using an illumina-compatible barcoding strategy, it is  unnecessa
 - [ ] Buffer HT1 (Included with MiSeq Kit)
 - [ ] Incorperation buffer (Included with MiSeq Kit)
 - [ ] Phix174 Illumina Spike in Control (FC-110-3001)
-- [ ] 1N NaOH
+- [ ] 1N NaOH (Fisher SS277)
 - [ ] Dilution Buffer (10 mM Tris-HCl pH 8, 0.05% Tween, note can be prepared from Qiagen EB + Tween)
 
 ## Protocol
