@@ -32,4 +32,5 @@ Because we are using an illumina-compatible barcoding strategy, it is  unnecessa
 - High quality sequencing across all reads. See example in **Figure 1**.
 
 ## Figures
-
+![fig1](https://github.com/jbisanz/AmpliconSeq/raw/master/images/basespace.png)
+**Figure 1.** Basespace Qscore plot of sequencing run by cycle. The first 270 cycles are the forward read where quality starts to drop off mildly towards the end of the read. The next 24 cycles are the indexing reads. Note some low quality on the start of the first index read (i7), this happens quite frequently on the MiSeq and can be partially addressed using the error correcting barcodes. The remaining 270 cycles are the reverse read which deteriorates at a rate higher than the forward as to be expected.
