@@ -42,7 +42,7 @@ Ideally we want a high-throughput extraction method that is scalable and would a
 ## QC
 Spot check samples and negative controls using Nanodrop and/or Qubit. Successful (high biomass) samples should be >5ng/µL with a 260/280>1.6 and 260/230>1.4.  If the 260/230 is <1.4, Nanodrop quantification is not accurate and Qubit should be used instead. **Yield is not an indicator of evenness of extraction.**
 
-
+## Figures
 ![Fig1](../images/zymolayout.png?)
 <br>**Figure 1.** OT-2 deck layout. Deck positions are sequentially numbered 1-11 from the bottom left to the top right. **Position 1 (BINDINGPLATE)***: 200ul supernatant in deep well plate ontop of magnetic binding module. ***Position 2 (OTHERS)***: 12 well reservoir, first column contains 5.5 mL magbeads, second column contains 10 mL H2O, third column contains 15 mL H2O. **Position 3 (ELUTIONPLATE)**: Empty 96 well biorad PCR plate to collect final DNA. **Positions 4-6**: contain 132 mL binding buffer, 110 mL Magwash 1, and 210mL Magwash 2 respectively. **Positions 7-9, 11**: 1000ul tips. **Position 10**: 200ul tips.
 
