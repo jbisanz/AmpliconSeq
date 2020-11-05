@@ -37,6 +37,6 @@ Ideally we want a high-throughput extraction method that is scalable and would a
 
 
 
-![Fig1](relative/path/to/img.jpg?raw=true "Title")
+![Fig1](../images/zymolayout.png? "Figure 1. OT-2 deck layout.")
 
 
