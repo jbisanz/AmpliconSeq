@@ -34,7 +34,7 @@ Ideally we want a high-throughput extraction method that is scalable and would a
 - [ ] Transfer 200 µL supernatant to 2 mL deep-well plate (BindingPlate).
 <br>*Note: optional stoping point before carrying on to automated cleanup
 - [ ] Step up OT-2 according to **Figure 1**.
-- [ ] Download ot2_scripts/1_ZymoMagWash.py and load into opentrons app. If not extracting entire plate, adjust line 18 (wells_to_extract= ....).
+- [ ] Download ot2_scripts/1_ZymoMagWash.py and load into opentrons app. If not extracting entire plate, adjust line 18 (wells_to_extract).
 - [ ] Calibrate all deck positions
 - [ ] Run protocol. **Expected Run Time = XXXXXXXXXXXXX min**
 - [ ] Take gDNA forward for primary PCR
