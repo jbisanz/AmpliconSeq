@@ -1,5 +1,5 @@
 # AmpliconSeq
- A set of protocols and pipelines for construction and analysis of 16S rRNA amplicon libraries. Currently Under Construction!!
+ A set of protocols and pipelines for construction and analysis of 16S rRNA amplicon libraries. **Currently Under Construction!!**
 
 ## Wet Lab Protocols
 Step 1: [DNA Extraction](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/1_DNAExtraction.md)
