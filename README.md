@@ -16,4 +16,7 @@ Step 1: [DNA Extraction](https://github.com/jbisanz/AmpliconSeq/blob/master/wetl
 ## Computational Workflow
 <br>Step 8: [QIIME2 Pipeline](https://github.com/jbisanz/AmpliconSeq/blob/master/analysis_scripts/QIIME2_pipeline.Rmd)
 
+## Other
+Design of primers and index here: .
+
 ## Helpful Resources
