@@ -41,7 +41,7 @@ A successful amplification curve should had formed for all samples, and no curve
 ## Figures
 
 ![fig1](https://github.com/jbisanz/AmpliconSeq/blob/master/images/primaryPCRlayout.png)
-**Figure 1**. OT-2 deck positions for primary PCR. **Position 1:** gDNA from Protocol 1 in skirted biorad 96 well plate. **Position 2:** 384 biorad qPCR plate. **Position 4 and 7:** 20ul filter tips. **Position 5:** Mastermix in the first column of 12-well reservoir.
+**Figure 1**. OT-2 deck positions for primary PCR. **Position 1:** gDNA from Protocol 1 in skirted biorad 96 well plate. **Position 2:** 384 biorad qPCR plate. **Position 4 and 7:** 20ul filter tips. **Position 5:** Mastermix in the first column of 12-well reservoir. Left mount: p20 single channel. Right mount: p20 multichannel.
 
 ![fig2](https://github.com/jbisanz/AmpliconSeq/blob/master/images/)
 **Figure 2**. qPCR amplification curves for undiluted samples. Note: the negative control samples did not amplify and are denoted by the red arrow.
