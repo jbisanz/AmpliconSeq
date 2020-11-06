@@ -3,7 +3,7 @@
 ## Theory
 Any given sequencing run produces a set number of reads: for example ~15 million from a MiSeq with v3 600 cycle reagents. In an ideal world, we would evenly distribute these reads among all samples. For example, if sequencing 150 samples, we should get 100,000 reads per sample. To get as close to this as possible, we need to pool equimolar amounts of each sample's individual sequencing library. While we have used manual pooling and Sequal plates in the past, manual pooling is prone to human error and is time consuming and Sequal plates provide inconsistent and irratic results. This protocol will use the OT-2 to pool equal molar concentrations of each sample based on quantification using Pico-green dye which specifically quantifies dsDNA (allowing direct quantification of PCR amplicons). This is the same approach that the Qubit uses, but in a higher throughput format (Quant-iT). The dsDNA concentration of each product is used to **Note: all quantification and pooling should be done at the same time to avoid batch effects leading to poor normalization.**
 
-# Materials
+## Materials
 - [ ] Quant-iT dsDNA Assay kit, high sensitivity (Life Tech Q33120)
 - [ ] 2 x 96 well black flat bottom NBS microplate (Corning 3650)
 - [ ] Generic 50mL reservoirs (ex. VistaLab Reagent Reservoirs 50mL 2138127G)
@@ -13,7 +13,7 @@ Any given sequencing run produces a set number of reads: for example ~15 million
 - [ ] 1x 10ul filter tips (USA scientific 1121-2710)
 - [ ] Fluorescent plate reader (ex ***XXXXXXX***)
 
-# Protocol
+## Protocol
 - [ ] For 96 well plate, prepare 110 reactions (11mL dsDNA HS buffer, 55µL dsDNA HS reagent dye) in a reagent reservoir.
 - [ ] Fill each well of 96 well plate with 100 µL reaction mix (sample plate)
 - [ ] Fill 1 column of second plate with 90 µL reaction mix (standard plate)
@@ -33,7 +33,7 @@ Any given sequencing run produces a set number of reads: for example ~15 million
 
 
 
-# Figures
+## Figures
 ![](https://github.com/jbisanz/AmpliconSeq/raw/master/images/picogreen.png)
 
 **Figure 1.** PicoGreen Normalization Tab. Note: in this case I did not run all standards but it would not hurt in future.
