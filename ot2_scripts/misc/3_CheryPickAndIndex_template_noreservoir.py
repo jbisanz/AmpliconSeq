@@ -124,7 +124,7 @@ def run(protocol: protocol_api.ProtocolContext):
 	indexplate = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '3') # skirted 96 well plate containing arrayed indexes
 	primarypcr = protocol.load_labware('biorad384pcrplate_384_wellplate_40ul', '6') # skirted 384 well plate of amplicons
 	dilutionplate = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '5') # a plate to carryout 100x dilutions. NOTE: this plate already has 150µL of water in each well!!!!!
-	reservoir = protocol.load_labware('usascientific_12_reservoir_22ml', '8') # reservoir with indexing mastermix (660ul) in A1 (First column) and Water (5 mL)
+	#reservoir = protocol.load_labware('usascientific_12_reservoir_22ml', '8') # reservoir with indexing mastermix (660ul) in A1 (First column) and Water (5 mL)
 
 	# define pipettes
 	left_pipette = protocol.load_instrument('p20_single_gen2', 'left', tip_racks=[tips1, tips4, tips7, tips10, tips11])
@@ -132,13 +132,13 @@ def run(protocol: protocol_api.ProtocolContext):
 	
 	
 	# load water into the dilution plate, will do 2 x 10-fold dilutions
-	right_pipette.pick_up_tip() # only using a single set of tips to load mastermix as is same in every well.
-	for i in range(1, 13): 
-		right_pipette.aspirate(18, reservoir['A2'])
-		right_pipette.dispense(18, indexpcr['A'+str(i)])
-		right_pipette.aspirate(18, reservoir['A2'])
-		right_pipette.dispense(18, indexpcr['B'+str(i)])
-	right_pipette.drop_tip() 
+	#right_pipette.pick_up_tip() # only using a single set of tips to load mastermix as is same in every well.
+	#for i in range(1, 13): 
+	#	right_pipette.aspirate(18, reservoir['A2'])
+	#	right_pipette.dispense(18, indexpcr['A'+str(i)])
+	#	right_pipette.aspirate(18, reservoir['A2'])
+	#	right_pipette.dispense(18, indexpcr['B'+str(i)])
+	#right_pipette.drop_tip() 
 	
 	
 	# transfer 2µL from the cherry picked wells defined in loadings to the corresponding point on the dilution plate and mix, then transfer down a row and mix
@@ -155,16 +155,16 @@ def run(protocol: protocol_api.ProtocolContext):
 		right_pipette.pick_up_tip()
 		right_pipette.aspirate(2, dilutionplate['A'+str(i)])
 		right_pipette.dispense(2, dilutionplate['B'+str(i)])
-		right_pipette.mix(10, 10, dilutionplate[load['indexing_well']]) # mix 10x by pipetting up and down 10ul
+		right_pipette.mix(10, 10, dilutionplate['B'+str(i)]) # mix 10x by pipetting up and down 10ul
 		right_pipette.drop_tip() 
 	
 
 	# load the master mix into the indexing plate.
-	right_pipette.pick_up_tip() # only using a single set of tips to load mastermix as is same in every well.
-	for i in range(1, 13): 
-		right_pipette.aspirate(6, reservoir['A1'])
-		right_pipette.dispense(6, indexpcr['A'+str(i)])
-	right_pipette.drop_tip() 
+	#right_pipette.pick_up_tip() # only using a single set of tips to load mastermix as is same in every well.
+	#for i in range(1, 13): 
+	#	right_pipette.aspirate(6, reservoir['A1'])
+	#	right_pipette.dispense(6, indexpcr['A'+str(i)])
+	#right_pipette.drop_tip() 
 
 	
 	# load the indexes
@@ -178,5 +178,5 @@ def run(protocol: protocol_api.ProtocolContext):
 	for i in range(1, 13): 
 		right_pipette.pick_up_tip()
 		right_pipette.aspirate(10, dilutionplate['B'+str(i)])
-		right_pipette.dispense(10, indexpcr['B'+str(i)])
+		right_pipette.dispense(10, indexpcr['A'+str(i)])
 		right_pipette.drop_tip() 

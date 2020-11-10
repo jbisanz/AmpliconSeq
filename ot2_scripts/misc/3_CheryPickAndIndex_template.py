@@ -155,7 +155,7 @@ def run(protocol: protocol_api.ProtocolContext):
 		right_pipette.pick_up_tip()
 		right_pipette.aspirate(2, dilutionplate['A'+str(i)])
 		right_pipette.dispense(2, dilutionplate['B'+str(i)])
-		right_pipette.mix(10, 10, dilutionplate[load['indexing_well']]) # mix 10x by pipetting up and down 10ul
+		right_pipette.mix(10, 10, dilutionplate['B'+str(i)]) # mix 10x by pipetting up and down 10ul
 		right_pipette.drop_tip() 
 	
 
@@ -178,5 +178,5 @@ def run(protocol: protocol_api.ProtocolContext):
 	for i in range(1, 13): 
 		right_pipette.pick_up_tip()
 		right_pipette.aspirate(10, dilutionplate['B'+str(i)])
-		right_pipette.dispense(10, indexpcr['B'+str(i)])
+		right_pipette.dispense(10, indexpcr['A'+str(i)])
 		right_pipette.drop_tip() 
