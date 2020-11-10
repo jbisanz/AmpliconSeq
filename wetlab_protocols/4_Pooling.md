@@ -26,6 +26,7 @@ Any given sequencing run produces a set number of reads: for example ~15 million
 - [ ] Move to Loading.csv tab, and click File > Save As > File Format: CSV UTF-8
 - [ ] For each plate you wish to pool, download a copy of ot2_scripts/4_PoolEquimolar_template.py and copy and paste the pooling volumes at Line 17-19 saving as many copies as you have plates.
 - [ ] Set up OT-2 as described in **Figure 2**.
+- [ ] Add 20ul nuclease free water to the eppendorf tube in the A1 position of the tube rack to ensure consistent delivery of volumes.
 - [ ] Upload scripts to OT-2 using Opentrons App.
 - [ ] Calibrate all deck positions
 - [ ] Run protocol. **Estimated time of completion: XXXXXXXX**
