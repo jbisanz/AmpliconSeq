@@ -10,107 +10,114 @@ metadata = {
 }
 
 
-# The data below is taken from a CSV wherein the first column defines the well of a sample from the original DNA extraction layout and the second column is the appropriate dilution from the 384 well primary pcr.
+# The data below is taken from a CSV wherein the first column defines the well of a sample from the original DNA extraction layout, the second column is the appropriate dilution from the 384 well primary pcr, and the third column is the well to grab.
 # Lines 17-112 are to be replaced with the users data
 loadings = '''
-indexing_well,primarypcr_well
-A1,B1
-B1,D1
-C1,F1
-D1,H1
-E1,J1
-F1,L1
-G1,M1
-H1,P1
-A2,A2
-B2,C2
-C2,E2
-D2,G2
-E2,I2
-F2,K2
-G2,M2
-H2,O2
-A3,B3
-B3,D3
-C3,F3
-D3,H3
-E3,J3
-F3,L3
-G3,N3
-H3,P3
-A4,B4
-B4,D4
-C4,F4
-D4,H4
-E4,J4
-F4,L4
-G4,N4
-H4,P4
-A5,A5
-B5,C5
-C5,E5
-D5,H5
-E5,J5
-F5,L5
-G5,M5
-H5,P5
-A6,A6
-B6,C6
-C6,E6
-D6,G6
-E6,I6
-F6,K6
-G6,M6
-H6,O6
-A7,B7
-B7,D7
-C7,E7
-D7,H7
-E7,I7
-F7,K7
-G7,M7
-H7,O7
-A8,B8
-B8,D8
-C8,E8
-D8,G8
-E8,I8
-F8,K8
-G8,N8
-H8,P8
-A9,B9
-B9,D9
-C9,F9
-D9,H9
-E9,J9
-F9,L9
-G9,N9
-H9,O9
-A10,B10
-B10,C10
-C10,F10
-D10,H10
-E10,J10
-F10,K10
-G10,N10
-H10,O10
-A11,A11
-B11,C11
-C11,E11
-D11,G11
-E11,J11
-F11,K11
-G11,M11
-H11,O11
-A12,A12
-B12,C12
-C12,E12
-D12,H12
-E12,I12
-F12,K12
-G12,M12
-H12,O12
+extraction_well,dilution_factor,primarypcr_well
+A1,1,A1
+B1,1,C1
+C1,1,E1
+D1,1,G1
+E1,1,I1
+F1,1,K1
+G1,1,M1
+H1,1,O1
+A2,1,A2
+B2,1,C2
+C2,1,E2
+D2,1,G2
+E2,1,I2
+F2,1,K2
+G2,1,M2
+H2,1,O2
+A3,1,A3
+B3,1,C3
+C3,1,E3
+D3,1,G3
+E3,1,I3
+F3,1,K3
+G3,1,M3
+H3,1,O3
+A4,1,A4
+B4,1,C4
+C4,1,E4
+D4,1,G4
+E4,1,I4
+F4,1,K4
+G4,1,M4
+H4,1,O4
+A5,1,A5
+B5,1,C5
+C5,1,E5
+D5,1,G5
+E5,1,I5
+F5,1,K5
+G5,1,M5
+H5,1,O5
+A6,1,A6
+B6,1,C6
+C6,1,E6
+D6,1,G6
+E6,1,I6
+F6,1,K6
+G6,1,M6
+H6,1,O6
+A7,1,A7
+B7,1,C7
+C7,1,E7
+D7,1,G7
+E7,1,I7
+F7,1,K7
+G7,1,M7
+H7,1,O7
+A8,1,A8
+B8,1,C8
+C8,1,E8
+D8,1,G8
+E8,1,I8
+F8,1,K8
+G8,1,M8
+H8,1,O8
+A9,1,A9
+B9,1,C9
+C9,1,E9
+D9,1,G9
+E9,1,I9
+F9,1,K9
+G9,1,M9
+H9,1,O9
+A10,1,A10
+B10,1,C10
+C10,1,E10
+D10,1,G10
+E10,1,I10
+F10,1,K10
+G10,1,M10
+H10,1,O10
+A11,1,A11
+B11,1,C11
+C11,1,E11
+D11,1,G11
+E11,1,I11
+F11,1,K11
+G11,1,M11
+H11,1,O11
+A12,1,A12
+B12,1,C12
+C12,1,E12
+D12,1,G12
+E12,1,I12
+F12,1,K12
+G12,1,M12
+H12,1,O12
 '''
+
+# Use the lines below to bypass steps (False to bypass)
+loadwater = True
+cherrypick = True
+loadmastermix = True
+loadindex = True
+loadtemplate = True
 
 def run(protocol: protocol_api.ProtocolContext):
 
@@ -123,60 +130,53 @@ def run(protocol: protocol_api.ProtocolContext):
 	indexpcr = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '2') # plate to conduct indexing pcr in
 	indexplate = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '3') # skirted 96 well plate containing arrayed indexes
 	primarypcr = protocol.load_labware('biorad384pcrplate_384_wellplate_40ul', '6') # skirted 384 well plate of amplicons
-	dilutionplate = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '5') # a plate to carryout 100x dilutions. NOTE: this plate already has 150µL of water in each well!!!!!
+	dilutionplate = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '5') # a plate to carryout 100x dilutions.
 	reservoir = protocol.load_labware('usascientific_12_reservoir_22ml', '8') # reservoir with indexing mastermix (660ul) in A1 (First column) and Water (5 mL)
 
 	# define pipettes
 	left_pipette = protocol.load_instrument('p20_single_gen2', 'left', tip_racks=[tips1, tips4, tips7, tips10, tips11])
 	right_pipette = protocol.load_instrument('p20_multi_gen2', 'right', tip_racks=[tips1, tips4, tips7, tips10, tips11])
-	
-	
-	# load water into the dilution plate, will do 2 x 10-fold dilutions
-	right_pipette.pick_up_tip() # only using a single set of tips to load mastermix as is same in every well.
-	for i in range(1, 13): 
-		right_pipette.aspirate(18, reservoir['A2'])
-		right_pipette.dispense(18, indexpcr['A'+str(i)])
-		right_pipette.aspirate(18, reservoir['A2'])
-		right_pipette.dispense(18, indexpcr['B'+str(i)])
-	right_pipette.drop_tip() 
-	
-	
-	# transfer 2µL from the cherry picked wells defined in loadings to the corresponding point on the dilution plate and mix, then transfer down a row and mix
-	loadings_parsed = loadings.splitlines()[1:] # Discard the blank first line.
-	for load in csv.DictReader(loadings_parsed):
-		left_pipette.pick_up_tip()
-		left_pipette.aspirate(2, primarypcr[load['primarypcr_well']])
-		left_pipette.dispense(2, dilutionplate[load['indexing_well']])
-		left_pipette.mix(10, 10, dilutionplate[load['indexing_well']]) # mix 10x by pipetting up and down 10ul
-		left_pipette.drop_tip()	 
-
-	# transfer 2µL from the from the first quadrant of the dilution plate to the second for a total of 100x dilution
-	for i in range(1, 13): 
-		right_pipette.pick_up_tip()
-		right_pipette.aspirate(2, dilutionplate['A'+str(i)])
-		right_pipette.dispense(2, dilutionplate['B'+str(i)])
-		right_pipette.mix(10, 10, dilutionplate[load['indexing_well']]) # mix 10x by pipetting up and down 10ul
+		
+	#load water into the dilution plate for a 100x dilution
+	if loadwater:
+		right_pipette.pick_up_tip() #use single set of tips
+		for i in range(1, 13): 
+			for p in range(1, 5):
+				right_pipette.aspirate(20, reservoir['A2'])
+				right_pipette.dispense(20, indexpcr['A'+str(i)])
 		right_pipette.drop_tip() 
+	
+	# transfer 1µL from the cherry picked wells defined in loadings to the corresponding point on the dilution plate
+	if cherrypick:
+		loadings_parsed = loadings.splitlines()[1:] # Discard the blank first line.
+		for load in csv.DictReader(loadings_parsed):
+			left_pipette.pick_up_tip()
+			left_pipette.aspirate(1, primarypcr[load['primarypcr_well']])
+			left_pipette.dispense(1, dilutionplate[load['extraction_well']])
+			left_pipette.drop_tip()	 
 	
 
 	# load the master mix into the indexing plate.
-	right_pipette.pick_up_tip() # only using a single set of tips to load mastermix as is same in every well.
-	for i in range(1, 13): 
-		right_pipette.aspirate(6, reservoir['A1'])
-		right_pipette.dispense(6, indexpcr['A'+str(i)])
-	right_pipette.drop_tip() 
-
+	if loadmastermix:
+		right_pipette.pick_up_tip() # only using a single set of tips to load mastermix as is same in every well.
+		for i in range(1, 13): 
+			right_pipette.aspirate(6, reservoir['A1'])
+			right_pipette.dispense(6, indexpcr['A'+str(i)])
+		right_pipette.drop_tip() 
 	
 	# load the indexes
-	for i in range(1, 13): 
-		right_pipette.pick_up_tip()
-		right_pipette.aspirate(4, indexplate['A'+str(i)])
-		right_pipette.dispense(4, indexpcr['A'+str(i)])
-		right_pipette.drop_tip() 
+	if loadindex:
+		for i in range(1, 13): 
+			right_pipette.pick_up_tip()
+			right_pipette.aspirate(4, indexplate['A'+str(i)])
+			right_pipette.dispense(4, indexpcr['A'+str(i)])
+			right_pipette.drop_tip() 
 	
 	# add the templates
-	for i in range(1, 13): 
-		right_pipette.pick_up_tip()
-		right_pipette.aspirate(10, dilutionplate['B'+str(i)])
-		right_pipette.dispense(10, indexpcr['B'+str(i)])
-		right_pipette.drop_tip() 
+	if loadtemplate:
+		for i in range(1, 13): 
+			right_pipette.pick_up_tip()
+			right_pipette.mix(5, 20, dilutionplate['A'+str(i)]) # mix 5x by pipetting up and down 20ul
+			right_pipette.aspirate(10, dilutionplate['A'+str(i)])
+			right_pipette.dispense(10, indexpcr['A'+str(i)])
+			right_pipette.drop_tip() 
