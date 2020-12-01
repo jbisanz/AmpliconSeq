@@ -27,6 +27,11 @@ The most important output is the WellsForIndexing.csv file which needs to be cop
 - [ ] 2x Bio-Rad 96 Well Plate 200 µL skirted PCR plate  (Biorad hsp9601)
 - [ ] Optically clear Plate Seals (Biorad Microseal ‘B’ #MSB1001)
 
+# Protocol
+
+
+Total run time = ~45 minutes
+
 
 ##### Table 4.2.1. Indexing PCR Master Mix (3.3x)
 
