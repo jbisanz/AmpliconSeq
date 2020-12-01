@@ -17,7 +17,6 @@ Protocol 1: [DNA Extraction](https://github.com/jbisanz/AmpliconSeq/blob/master/
 <br>Step 8: [QIIME2 Pipeline](https://github.com/jbisanz/AmpliconSeq/blob/master/analysis_scripts/QIIME2_pipeline.Rmd)
 
 ## Optional Protocols
-Design of primers and index here: .
 Protocol O2: [Primary PCR and Indexing for Low Biomass Samples](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/O2_lowbiomass.md)
 <br>Protocol O4: [Ampure XP Cleanup](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/O4_Ampure.md)
 
