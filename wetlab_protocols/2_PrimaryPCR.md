@@ -44,6 +44,7 @@ A successful amplification curve should had formed for all samples, and no curve
 **Figure 1**. OT-2 deck positions for primary PCR. **Position 1:** gDNA from Protocol 1 in skirted biorad 96 well plate. **Position 2:** 384 biorad qPCR plate. **Position 4 and 7:** 20ul filter tips. **Position 5:** Mastermix in the first column of 12-well reservoir. Left mount: p20 single channel. Right mount: p20 multichannel.
 
 ![fig2](https://github.com/jbisanz/AmpliconSeq/blob/master/images/ampcurves.png)
+
 **Figure 2**. qPCR amplification curves for a single sample shows dilution series. The 10x or 100x dilutions are ideal for carrying forward. Note that the extraction blanks have not amplified. Amplification may be observed at 25 cycles of PCR due to primer dimers. See protocols for low biomass samples for more information and recommendations.
 
 ## Tables
