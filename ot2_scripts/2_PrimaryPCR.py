@@ -1,7 +1,7 @@
 from opentrons import protocol_api
 
 # tweakable settings
-loadmastermix = False #if mastermix is to be loaded from 12-well reservoir or if it has been manually pipetted True/False
+loadmastermix = True #if mastermix is to be loaded from 12-well reservoir or if it has been manually pipetted True/False
 Nmix = 5
 mix_volume = 3
 wells_to_load = range(1,13) # the range of columns to load, note that the last number needs to be one greater than the intended well, ie range(1,13) is columns 1:12
@@ -17,15 +17,15 @@ metadata = {
 def run(protocol: protocol_api.ProtocolContext):
 
 	# define labware and locations
-	tips1 = protocol.load_labware('opentrons_96_filtertiprack_20ul', '1') # 20ul filter tips on deck position 1
-	tips4 = protocol.load_labware('opentrons_96_filtertiprack_20ul', '4') # 20ul filter tips on deck position 4
-	if loadmastermix: reservoir = protocol.load_labware('usascientific_12_reservoir_22ml', '2') # reservoir with pcr mastermix (3.8mL) in A1 (First column)
-	primarypcr = protocol.load_labware('biorad384pcrplate_384_wellplate_40ul', '3') # skirted 384 well plate of amplicons
-	gDNA = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '5') # skirted 96 well plate containing extracted DNA
+	tips4 = protocol.load_labware('opentrons_96_filtertiprack_20ul', '4') # 20ul filter tips on deck position 1
+	tips7 = protocol.load_labware('opentrons_96_filtertiprack_20ul', '7') # 20ul filter tips on deck position 4
+	if loadmastermix: reservoir = protocol.load_labware('usascientific_12_reservoir_22ml', '5') # reservoir with pcr mastermix (3.8mL) in A1 (First column)
+	primarypcr = protocol.load_labware('biorad384pcrplate_384_wellplate_40ul', '2') # skirted 384 well plate of amplicons
+	gDNA = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '1') # skirted 96 well plate containing extracted DNA
 
 	# define pipettes
-	left_pipette = protocol.load_instrument('p20_single_gen2', 'left', tip_racks=[tips1, tips4])
-	right_pipette = protocol.load_instrument('p20_multi_gen2', 'right', tip_racks=[tips1, tips4])
+	left_pipette = protocol.load_instrument('p20_single_gen2', 'left', tip_racks=[tips4, tips7])
+	right_pipette = protocol.load_instrument('p20_multi_gen2', 'right', tip_racks=[tips4, tips7])
 
 	if loadmastermix:
 		right_pipette.pick_up_tip() # only using a single set of tips to load mastermix as is same in every well.
@@ -38,7 +38,8 @@ def run(protocol: protocol_api.ProtocolContext):
 			right_pipette.dispense(8, primarypcr['A'+str(i+12)])
 			right_pipette.aspirate(8, reservoir['A1'])
 			right_pipette.dispense(8, primarypcr[chr(ord('A') + 1)+str(i+12)])
-		right_pipette.drop_tip() 
+		right_pipette.drop_tip()
+		protocol.pause("Please centrifuge 384 plate before continuing!")
 
 	# add the templates and do dilution series
 	for i in wells_to_load: 
