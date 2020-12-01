@@ -14,7 +14,7 @@ Protocol 1: [DNA Extraction](https://github.com/jbisanz/AmpliconSeq/blob/master/
 <br>Protocol 7: [Loading MiSeq](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/7_LoadingMiSeq.md)
 
 ## Computational Workflow
-<br>Step 8: [QIIME2 Pipeline](https://github.com/jbisanz/AmpliconSeq/blob/master/analysis_scripts/QIIME2_pipeline.Rmd)
+<br>Protocol 8: [QIIME2 Pipeline](https://github.com/jbisanz/AmpliconSeq/blob/master/analysis_scripts/QIIME2_pipeline.Rmd)
 
 ## Optional Protocols
 Protocol O2: [Primary PCR and Indexing for Low Biomass Samples](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/O2_lowbiomass.md)
