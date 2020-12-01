@@ -11,12 +11,13 @@ metadata = {
 def run(protocol: protocol_api.ProtocolContext):
 
 	# set tweakable variables
+	#columns_to_extract = [1,2,3,4,5,6,7,8,9,10,11,12] # which columns should be cleaned up?
+	columns_to_extract = [1,2,3,4,5,6,7,8,9,10,11,12] # which columns should be cleaned up?
 	bead_volume = 18 # 0.9x volume already in wells for size selection, 1.8x for other uses
 	aspirate_speed = 20 # speed with which to draw  volumes of magbeads in ul/s
 	wash_volume = 150 # ul of ethanol for bead washes
 	elution_volume = 50 # ul of water to add to final beads
 	elution_to_plate = 40 # ul to transfer to final elution plate
-	columns_to_extract = range(1, 13) # Note that python will return 1 less than the total, ie range from 1:13 to do on columns 1:12.
 	incubation_time = 5 #number of minutes for capturing DNA on beads
 	capture_time = 5 #number of minutes to capture on stand
 	wash_time = 0.16 #time to pause before removing Etoh
@@ -34,7 +35,6 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
 	# define pipettes
-	#left_pipette = protocol.load_instrument('p1000_single_gen2', 'left', tip_racks=[tips_binding, tips_wash1, tips_wash2, tips_wash2rep])
 	right_pipette = protocol.load_instrument('p300_multi_gen2', 'right', tip_racks=[tips_bind, tips_wash1, tips_wash2, tips_elute])
 
 	### Prerun setup ########################################
