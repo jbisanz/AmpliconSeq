@@ -18,8 +18,8 @@ Protocol 1: [DNA Extraction](https://github.com/jbisanz/AmpliconSeq/blob/master/
 
 ## Optional Protocols
 Design of primers and index here: .
-Protocol O2: [Primary PCR and Indexing for Low Biomass Samples]((https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/O2_lowbiomass.md)
-Protocol O4: [Ampure XP Cleanup]((https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/O4_Ampure.md)
+Protocol O2: [Primary PCR and Indexing for Low Biomass Samples](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/O2_lowbiomass.md)
+<br>Protocol O4: [Ampure XP Cleanup](https://github.com/jbisanz/AmpliconSeq/blob/master/wetlab_protocols/O4_Ampure.md)
 
 ## Other
 Design of primers and index here: .
