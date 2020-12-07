@@ -26,13 +26,13 @@ Another advantage of this amplification strategy is that you can mix and match 1
 ## Protocol
 ***Location:** PCR hood or separate room/area from other steps*
 - [ ] Treat PCR area with UV light for ~15 minutes.
-- [ ] Generate enough PCR master mix for 420 rxns according to **Table 2** in the first column of a 12 well reservoir.
+- [ ] Generate enough PCR master mix for 420 rxns according to **Table 2** in the first column of a 12 well reservoir. *Note: you can bypass this step and pipette the mastermix manually, set loadmastermix = False in python script
 - [ ] Thaw gDNA plate on ice and briefly centrifuge to prevent cross contamination.
 - [ ] Set up OT-2 according to **Figure 1** below.
 - [ ] Download ot2_scripts/2_PrimaryPCR.py
 - [ ] Upload 2_PrimaryPCR.py to OT-2 using Opentrons App.
 - [ ] Calibrate all deck positions
-- [ ] Run protocol. **Estimated time of completion: XXXXXXXX**
+- [ ] Run protocol. **Estimated time of completion: TBD**
 - [ ] After qPCR run is done, transfer plates to -20˚C if processing is going to be paused.
 
 ## QC
