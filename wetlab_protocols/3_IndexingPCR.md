@@ -28,10 +28,13 @@ The most important output is the WellsForIndexing.csv file which needs to be cop
 - [ ] Optically clear Plate Seals (Biorad Microseal ‘B’ #MSB1001)
 
 # Protocol
-
-
-Total run time = ~45 minutes
-
+- [ ] Obtain a plate of indexes from the freezer and thaw on ice. **Breifly centrifuge before opening!!!!!**
+- [ ] Download a copy of 3_CheryPickAndIndex.py and copy and paste your loadings from the WellsForIndexing.csv file into it.
+- [ ] Set up the OT2 as in Figure 1. *Note: you can manually load the indexing mastermix and water to the dilution plate if a reservoir is not available. Adjust loadwater = False and loadmastermix = False in the python script*
+- [ ] Load python script on OT2
+- [ ] Calibrate all deck positions
+- [ ] Run script (Estimated run time = ~45 minutes).
+- [ ] After completion, freeze plates until quantification and pooling.
 
 ## Table 1. Indexing PCR Master Mix (3.3x)
 
@@ -52,3 +55,6 @@ Denature | 98˚C | 20 sec
 Anneal | 55˚C | 15 sec
 Extend | 72˚C | 60 sec
 Holding	| 4˚C	Hold | (0 sec)
+
+![fig1](https://github.com/jbisanz/AmpliconSeq/blob/master/images/indexinglayout.png)
+**Figure 1. OT2 set up for picking and indexing.** **Positions 1,4,7,10,11:** 20ul filter tips. **Position 2:** A biorad skirted 96 well plate to conduct indexing PCR in. **Position 3:** One of the premade plates of indexes. **Position 5:** A dilution plate to carry out a 100-fold dilution in. **Position 6:** the biorad 384 plate containing the products from the primary PCR. **Plate 7:** A 12-well reservoir with mastermix in the first column and water in the second (optional).
