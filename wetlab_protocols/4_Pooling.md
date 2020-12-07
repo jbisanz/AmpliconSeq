@@ -37,8 +37,8 @@ Any given sequencing run produces a set number of reads: for example ~15 million
 ## Figures
 ![](https://github.com/jbisanz/AmpliconSeq/raw/master/images/picogreen.png)
 
-**Figure 1.** PicoGreen Normalization Tab. Note: in this case I did not run all standards but it would not hurt in future.
+**Figure 1.** PicoGreen Normalization Tab.
 
-![](https://github.com/jbisanz/AmpliconSeq/raw/master/images/ot2pico.png)
+![](https://github.com/jbisanz/AmpliconSeq/raw/master/images/poolinglayout.png)
 
 **Figure 2.** OT-2 deck layout. **Position 1:** 20µL filter tips. **Position 2:** Indexing PCR plates (in 96 well biorad plates). **Position 3:** Eppendorf tube in position A1 of tube rack. Left Pipette is loaded with p20 single channel.
