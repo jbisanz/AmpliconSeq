@@ -11,7 +11,11 @@ Any given sequencing run produces a set number of reads: for example ~15 million
 - [ ] 10 ul multichannel pipette
 - [ ] 1x 200ul filter tips (USA scientific 120-8710)
 - [ ] 1x 10ul filter tips (USA scientific 1121-2710)
-- [ ] Fluorescent plate reader (ex ***XXXXXXX***)
+- [ ] Fluorescent plate reader
+- [ ] Nuclease free 1.5 mL microcentrifuge tube (eppendorf or alternative)
+- [ ] Opentrons OT2
+- [ ] Opentrons Gen2 20ul single channel
+- [ ] 1 box 20ul opentrons filter tips
 
 ## Protocol
 - [ ] For 96 well plate, prepare 110 reactions (11mL dsDNA HS buffer, 55µL dsDNA HS reagent dye) in a reagent reservoir.
@@ -24,14 +28,15 @@ Any given sequencing run produces a set number of reads: for example ~15 million
 - [ ] Repeat measurement on full sample plate being sure to set gain to match the standard plate.
 - [ ] Copy and paste results into Picogreen template as per **Figure 1**.
 - [ ] Move to Loading.csv tab, and click File > Save As > File Format: CSV UTF-8
-- [ ] For each plate you wish to pool, download a copy of ot2_scripts/4_PoolEquimolar_template.py and copy and paste the pooling volumes at Line 17-19 saving as many copies as you have plates.
-- [ ] Set up OT-2 as described in **Figure 2**.
+- [ ] Remove lines which do not have a loading volume from the resulting csv file
+- [ ] Download a copy of ot2_scripts/4_PoolEquimolar_template.py and copy and paste the pooling volumes from the CSV file into the python (.py) script.
+- [ ] Set up OT-2 as described in **Figure 2**. *Note: Up to 6 plates can be pooled simnultaneously from plates in deck positions 1-6. Place your plate in the corresponding deck position matching its number from the spread sheet*
 - [ ] Add 20ul nuclease free water to the eppendorf tube in the A1 position of the tube rack to ensure consistent delivery of volumes.
 - [ ] Upload scripts to OT-2 using Opentrons App.
 - [ ] Calibrate all deck positions
-- [ ] Run protocol. **Estimated time of completion: XXXXXXXX**
-- [ ] when pooling is done, load the next plate's protocol and continue pooling into the same 1.5 mL eppendorf tube.
-
+- [ ] Run protocol. **Estimated time of completion: 13 minutes/plate**
+- [ ] Note, if the total volume to be pooled is over 1200ul, the protocol will pause and ask you to insert a fresh 1.5mL eppendorf tube.
+- [ ] At completion of pooling, mix all pooled 1.5mL eppendorf tubes together (if pooling >1200ul)
 
 
 ## Figures
@@ -41,4 +46,4 @@ Any given sequencing run produces a set number of reads: for example ~15 million
 
 ![](https://github.com/jbisanz/AmpliconSeq/raw/master/images/poolinglayout.png)
 
-**Figure 2.** OT-2 deck layout. **Position 1:** 20µL filter tips. **Position 2:** Indexing PCR plates (in 96 well biorad plates). **Position 3:** Eppendorf tube in position A1 of tube rack. Left Pipette is loaded with p20 single channel.
+**Figure 2.** OT-2 deck layout. **Position 1-6:** Indexed PCR products. *Note: you may use any combination of plates 1-6 however ensure that their deck positions matches the loading.csv file.* **Position 7:** Eppendorf tube in position A1 of tube rack. **Position 8:** 20ul filter tips. Left Pipette is loaded with p20 single channel.
