@@ -12,21 +12,25 @@ def run(protocol: protocol_api.ProtocolContext):
 
 	# set tweakable variables
 	#columns_to_extract = [1,2,3,4,5,6,7,8,9,10,11,12] # which columns should be cleaned up?
-	columns_to_extract = [1,2,3,4,5,6,7,8,9,10,11,12] # which columns should be cleaned up?
+	columns_to_extract = [1,2] # which columns should be cleaned up?
 	bead_volume = 18 # 0.9x volume already in wells for size selection, 1.8x for other uses
-	aspirate_speed = 20 # speed with which to draw  volumes of magbeads in ul/s
+	aspirate_speed = 20 # speed with which to draw liquids off beads
 	wash_volume = 150 # ul of ethanol for bead washes
 	elution_volume = 50 # ul of water to add to final beads
 	elution_to_plate = 40 # ul to transfer to final elution plate
-	incubation_time = 5 #number of minutes for capturing DNA on beads
-	capture_time = 5 #number of minutes to capture on stand
+	incubation_time = 3 #number of minutes for capturing DNA on beads
+	capture_time = 3 #number of minutes to capture on stand
 	wash_time = 0.16 #time to pause before removing Etoh
 	dry_time = 10 #number of minutes to dry beads
+	reservoir = False #If the using the 12 channel reservoirs, go True, otherwise dispense into 96-well deep well plate along similar columns.
 	
 	# define deck layout
 	MagModule = protocol.load_module('magnetic module gen2', 1)
 	BindingPlate = MagModule.load_labware('biorad_96_wellplate_200ul_pcr')
-	BeadsAndWater = protocol.load_labware('usascientific_12_reservoir_22ml', '2') # magbeads in A1 (X mL), 70% Ethanol in A2 (20mL), 70% Ethanol in A3 (20mL), water in A4 (6mL)
+	if reservoir:
+		BeadsAndWater = protocol.load_labware('usascientific_12_reservoir_22ml', '2') # magbeads in A1 (Nsamples * bead_volume * 1.2), 80% Ethanol in A2 (20mL), 70% Ethanol in A3 (20mL), water in A4 (6mL)
+	else:
+		BeadsAndWater =  protocol.load_labware('usascientific_96_wellplate_2.4ml_deep', '2') #This is an alternate using USA scientific deep well 2mL plates
 	ElutionPlate = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '3') # an empty biorad 96 well plate
 	tips_bind = protocol.load_labware('opentrons_96_filtertiprack_200ul', '4')
 	tips_wash1 = protocol.load_labware('opentrons_96_filtertiprack_200ul', '5')
@@ -44,7 +48,9 @@ def run(protocol: protocol_api.ProtocolContext):
 	#mix up beads
 	protocol.comment('-----------------------> Mixing beads')
 	right_pipette.pick_up_tip(tips_bind['A1'])
-	right_pipette.mix(10, 100, BeadsAndWater['A1']) # mix beads 10 x by pulling up 100ul
+	right_pipette.mix(5, 100, BeadsAndWater['A1']) # mix beads 10 x by pulling up 100ul
+	right_pipette.blow_out()
+	right_pipette.touch_tip()
 	right_pipette.return_tip() 
 	# add defined volume of beads to each well
 	
@@ -53,6 +59,7 @@ def run(protocol: protocol_api.ProtocolContext):
 	for i in columns_to_extract: 
 		right_pipette.pick_up_tip(tips_bind['A'+str(i)])
 		right_pipette.aspirate(bead_volume, BeadsAndWater['A1'])
+		right_pipette.touch_tip()
 		right_pipette.dispense(bead_volume, BindingPlate['A'+str(i)])
 		right_pipette.mix(10, 20, BindingPlate['A'+str(i)])
 		right_pipette.return_tip()
@@ -102,7 +109,9 @@ def run(protocol: protocol_api.ProtocolContext):
 		right_pipette.pick_up_tip(tips_elute['A'+str(i)])
 		right_pipette.aspirate(elution_volume, BeadsAndWater['A4'])
 		right_pipette.dispense(elution_volume, BindingPlate['A'+str(i)])
-		right_pipette.mix(10, elution_volume*0.8, BindingPlate['A'+str(i)])
+		right_pipette.mix(10, elution_volume*0.5, BindingPlate['A'+str(i)])
+		right_pipette.blow_out()
+		right_pipette.touch_tip()
 		right_pipette.return_tip()
 
 	MagModule.engage()
