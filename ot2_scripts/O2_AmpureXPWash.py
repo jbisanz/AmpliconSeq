@@ -28,7 +28,7 @@ def run(protocol: protocol_api.ProtocolContext):
 	MagModule = protocol.load_module('magnetic module gen2', 1)
 	BindingPlate = MagModule.load_labware('biorad_96_wellplate_200ul_pcr')
 	if reservoir:
-		BeadsAndWater = protocol.load_labware('usascientific_12_reservoir_22ml', '2') # magbeads in A1 (Nsamples * bead_volume * 1.2), 80% Ethanol in A2 (20mL), 70% Ethanol in A3 (20mL), water in A4 (6mL)
+		BeadsAndWater = protocol.load_labware('usascientific_12_reservoir_22ml', '2') # magbeads in A1 (Nsamples * bead_volume * 1.2), 80% Ethanol in A2 (Nsamples * wash_volume * 1.2), 70% Ethanol in A3 (Nsamples * wash_volume * 1.2), water in A4 (Nsamples * elution_volume * 1.2))
 	else:
 		BeadsAndWater =  protocol.load_labware('usascientific_96_wellplate_2.4ml_deep', '2') #This is an alternate using USA scientific deep well 2mL plates
 	ElutionPlate = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '3') # an empty biorad 96 well plate
