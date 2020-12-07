@@ -32,7 +32,7 @@ Another advantage of this amplification strategy is that you can mix and match 1
 - [ ] Download ot2_scripts/2_PrimaryPCR.py
 - [ ] Upload 2_PrimaryPCR.py to OT-2 using Opentrons App.
 - [ ] Calibrate all deck positions
-- [ ] Run protocol. **Estimated time of completion: 40 min**
+- [ ] Run protocol. **Estimated time of completion: TBD**
 - [ ] After qPCR run is done, transfer plates to -20˚C if processing is going to be paused.
 
 ## QC
