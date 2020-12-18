@@ -11,8 +11,7 @@ metadata = {
 def run(protocol: protocol_api.ProtocolContext):
 
 	# set tweakable variables
-	#columns_to_extract = [1,2,3,4,5,6,7,8,9,10,11,12] # which columns should be cleaned up?
-	columns_to_extract = [11,12] # which columns should be cleaned up?
+	columns_to_extract = [1,2,3,4,5,6,7,8,9,10,11,12] # which columns should be cleaned up?
 	bead_volume = 18 # 0.9x volume already in wells for size selection, 1.8x for other uses
 	aspirate_speed = 7 # speed (ul/s) with which to draw liquids off beads (5-10 optimal?)
 	reservoir_speed = 80 # speed (ul/s)  with which to draw liquids from reservoir
