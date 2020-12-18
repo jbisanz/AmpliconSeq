@@ -12,14 +12,14 @@ def run(protocol: protocol_api.ProtocolContext):
 
 	# set tweakable variables
 	columns_to_extract = [1,2,3,4,5,6,7,8,9,10,11,12] # which columns should be cleaned up?
-	bead_volume = 18 # 0.9x volume already in wells for size selection, 1.8x for other uses
+	bead_volume = 14 # 0.7x volume already in wells for size selection, 1.8x for other uses
 	aspirate_speed = 7 # speed (ul/s) with which to draw liquids off beads (5-10 optimal?)
 	reservoir_speed = 80 # speed (ul/s)  with which to draw liquids from reservoir
 	wash_volume = 150 # ul of ethanol for bead washes
-	elution_volume = 50 # ul of water to add to final beads
-	elution_to_plate = 40 # ul to transfer to final elution plate
-	incubation_time = 3 #number of minutes for DNA to mix with beads before capture
-	capture_time = 3 #number of minutes to capture on stand
+	elution_volume = 30 # ul of water to add to final beads
+	elution_to_plate = 20 # ul to transfer to final elution plate
+	incubation_time = 5 #number of minutes for DNA to mix with beads before capture
+	capture_time = 2 #number of minutes to capture on stand
 	dry_time = 5 #number of minutes to dry beads
 	reservoir = True #If the using the 12 channel reservoirs, go True, otherwise dispense into 96-well deep well plate along similar columns.
 	vertical_space = 2 #number of mm for pipette head to be above well for dispensing
