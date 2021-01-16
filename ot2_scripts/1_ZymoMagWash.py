@@ -10,146 +10,269 @@ metadata = {
 
 def run(protocol: protocol_api.ProtocolContext):
 
+	# which steps should be run?
+	AddBeads = True
+	AddBindingBuffer = True
+	CaptureBinding = True
+	Wash1 = True
+	Wash2 = True
+	Wash2repeat = True
+	Dry = True
+	Elute = True
+
 	# set tweakable variables
-	wash_speed = 100 # speed with which to draw large volumes of magbeads in ul/s
-	elution_speed = 20 # speed with which to draw up liquid from captured beads in ul/second
 	elution_volume = 50 # ul of water to add to final beads
 	elution_to_plate = 40 # ul to transfer to final elution plate
-	wells_to_extract = [ 'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'A10', 'B10', 'C10', 'D10', 'E10', 'F10', 'G10', 'H10', 'A11', 'B11', 'C11', 'D11', 'E11', 'F11', 'G11', 'H11', 'A12', 'B12', 'C12', 'D12', 'E12', 'F12', 'G12', 'H12' ]
+	capture_depth = -3 # depth below ideal bottom of plate to remove supernatants, this may be required as a function of a poor calibration or labware def
+	capture_min = 2 # number of minutes to capture beads on magnets
+	cols_to_extract = [1, 2] # which columns should be extracted?
+	nmix = 5 # number of times to pipette to mix
+	drying_min = 20 # number of minutes to evaporate residual ethanol !!!! SET TO 20
+	trash_speed = 1 # the relative speed to discard of liquids into trash, this is an integer multiplier of normal speed, set higher to clear bubbles on outside of tip
 
+
+	
 	# define deck layout
-	MagModule = protocol.load_module('magnetic module gen2', 1)
-	BindingPlate = MagModule.load_labware('usascientific_96_wellplate_2.4ml_deep')
-	BeadsAndWater = protocol.load_labware('usascientific_12_reservoir_22ml', '2') # magbeads in A1 (5.5 mL), water in A2 (cleaning tips; 10mL) and water in A3 (elution; 15mL)
+	MagModule = protocol.load_module('magnetic module gen2', 10)
+	BindingPlate = MagModule.load_labware('nest_96_wellplate_2ml_deep') # use the
 	ElutionPlate = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '3') # an empty biorad 96 well plate
-	BindingBuffer = protocol.load_labware('agilent_1_reservoir_290ml', '4') # reservoir with 132 mL binding buffer
-	MagWash1 = protocol.load_labware('agilent_1_reservoir_290ml', '5') # reservoir with 110 mL magwash1
-	MagWash2 = protocol.load_labware('agilent_1_reservoir_290ml', '6') # reservoir with 210 mL magwash1
-	tips_binding = protocol.load_labware('opentrons_96_filtertiprack_1000ul', '7')
-	tips_wash1 = protocol.load_labware('opentrons_96_filtertiprack_1000ul', '8')
-	tips_wash2 = protocol.load_labware('opentrons_96_filtertiprack_1000ul', '9')
-	tips_elution = protocol.load_labware('opentrons_96_filtertiprack_200ul', '10')
-	tips_wash2rep = protocol.load_labware('opentrons_96_filtertiprack_1000ul', '11')
 
+	BeadsAndWater = protocol.load_labware('usascientific_12_reservoir_22ml', '2') # magbeads in A1 (4 mL), water in A2 (10mL), the end columns will be used for waste
+	BindingBuffer = protocol.load_labware('agilent_1_reservoir_290ml', '7') # reservoir with 70 mL binding buffer
+	MagWash1 = protocol.load_labware('agilent_1_reservoir_290ml', '4') # reservoir with 100 mL magwash1
+	MagWash2 = protocol.load_labware('agilent_1_reservoir_290ml', '1') # reservoir with 200 mL magwash2
+
+	tips_binding = protocol.load_labware('opentrons_96_filtertiprack_200ul', '11')
+	tips_wash1 =  protocol.load_labware('opentrons_96_filtertiprack_200ul', '8')
+	tips_wash2 =  protocol.load_labware('opentrons_96_filtertiprack_200ul', '5')
+	tips_wash2_repeat =  protocol.load_labware('opentrons_96_filtertiprack_200ul', '9')
+	tips_elution = protocol.load_labware('opentrons_96_filtertiprack_200ul', '6')
+
+	fixed_trash = protocol.fixed_trash['A1']
+
+
+	set_rail_lights = True
 
 	# define pipettes
-	left_pipette = protocol.load_instrument('p1000_single_gen2', 'left', tip_racks=[tips_binding, tips_wash1, tips_wash2, tips_wash2rep])
-	right_pipette = protocol.load_instrument('p300_multi_gen2', 'right', tip_racks=[tips_elution])
-
+	multichannel = protocol.load_instrument('p300_multi_gen2', 'right', tip_racks=[tips_binding, tips_wash1, tips_wash2, tips_wash2_repeat, tips_elution])
+	#P1000 = protocol.load_instrument('p1000_single_gen2', 'right', tip_racks=[tips_binding, tips_wash1, tips_wash2, tips_wash2rep])
 
 	### Prerun setup ########################################
 	MagModule.disengage()
-	left_pipette.flow_rate.aspirate = wash_speed
-	right_pipette.flow_rate.aspirate = elution_speed
 
 	### MAG BINDING ######################################
-	# add 25uL beads to each well
-	protocol.comment('Adding mag beads')
-	right_pipette.pick_up_tip(tips_elution['A1'])
-	right_pipette.mix(20, 100, BeadsAndWater['A1']) # mix beads 20 x by pulling up 100ul
-	for i in range(1, 13): 
-		right_pipette.aspirate(25, BeadsAndWater['A1'])
-		right_pipette.dispense(25, BindingPlate['A'+str(i)])
-	right_pipette.mix(20, 100, BeadsAndWater['A2']) # wash tips in water so can reuse them for elution later
-	right_pipette.return_tip() 
-	# add 600ul mag binding buffer, mix and return to tip box
-	protocol.comment('Adding binding buffer')
-	for i in range(0, 96): 
-		left_pipette.pick_up_tip(tips_binding[wells_to_extract[i]])
-		left_pipette.aspirate(600, BindingBuffer['A1'])
-		left_pipette.dispense(600, BindingPlate[wells_to_extract[i]])
-		left_pipette.mix(10, 300, BindingPlate[wells_to_extract[i]])
-		left_pipette.return_tip() 
-	MagModule.engage()
-	protocol.delay(minutes=5)
-	# using dirty tips from before to move liquid back to reservoir
-	for i in range(0, 96): 
-		left_pipette.pick_up_tip(tips_binding[wells_to_extract[i]])
-		left_pipette.aspirate(600, BindingPlate[wells_to_extract[i]])
-		left_pipette.dispense(600, BindingBuffer['A1'])
-		left_pipette.return_tip() 
-	MagModule.disengage()
-
+	if AddBeads:
+		protocol.comment('--------->Adding 25ul mag beads')
+		multichannel.pick_up_tip(tips_binding['A1'])
+		multichannel.mix(10, 100, BeadsAndWater['A1'].bottom(3)) # mix beads 20 x by pulling up 100ul
+		for i in cols_to_extract:
+			multichannel.aspirate(25, BeadsAndWater['A1'])
+			multichannel.dispense(25, BindingPlate['A'+str(i)].top(0))
+			multichannel.blow_out()
+		multichannel.return_tip()
+		
+	if AddBindingBuffer:
+		protocol.comment('--------->Adding 600 ul binding buffer')
+		multichannel.pick_up_tip(tips_binding['A1'])
+		for i in cols_to_extract:
+			multichannel.aspirate(200, BindingBuffer['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingBuffer['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+		multichannel.return_tip()	
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_binding['A'+str(i)])
+			multichannel.aspirate(200, BindingBuffer['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)])
+			multichannel.mix(nmix, 180, BindingPlate['A'+str(i)].bottom(5))
+			multichannel.blow_out()
+			multichannel.return_tip()
+		
+	if CaptureBinding:
+		protocol.comment('--------->Removing Binding Buffer')
+		MagModule.engage()
+		protocol.delay(minutes=capture_min)
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_binding['A'+str(i)])
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.touch_tip()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.touch_tip()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)].bottom(capture_depth)) # is this a calibration issue?
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.return_tip()
+		
+	if Wash1:
+		protocol.comment('--------->Doing Wash 1')
+		MagModule.disengage()
+		multichannel.pick_up_tip(tips_wash1['A1'])
+		for i in cols_to_extract:
+			multichannel.aspirate(200, MagWash1['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash1['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash1['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash1['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+		multichannel.return_tip()	
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_wash1['A'+str(i)])
+			multichannel.aspirate(100, MagWash1['A1'])
+			multichannel.dispense(100, BindingPlate['A'+str(i)])
+			multichannel.mix(nmix, 180, BindingPlate['A'+str(i)].bottom(5))
+			multichannel.blow_out()
+			multichannel.return_tip()
+		MagModule.engage()
+		protocol.delay(minutes=capture_min)
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_wash1['A'+str(i)])
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)].bottom(capture_depth))
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			multichannel.blow_out()
+			multichannel.return_tip()
+			
+	if Wash2:
+		protocol.comment('--------->Doing Wash 2')
+		MagModule.disengage()
+		multichannel.pick_up_tip(tips_wash2['A1'])
+		for i in cols_to_extract:
+			multichannel.aspirate(200, MagWash2['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash2['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash2['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash2['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+		multichannel.return_tip()	
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_wash2['A'+str(i)])
+			multichannel.aspirate(100, MagWash2['A1'])
+			multichannel.dispense(100, BindingPlate['A'+str(i)])
+			multichannel.mix(nmix, 180, BindingPlate['A'+str(i)].bottom(5))
+			multichannel.blow_out()
+			multichannel.return_tip()
+		MagModule.engage()
+		protocol.delay(minutes=capture_min)
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_wash2['A'+str(i)])
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)]) # is this a calibration issue?
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)].bottom(capture_depth))
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.return_tip()
+			
+	if Wash2repeat:
+		protocol.comment('--------->Repeating Wash 2')
+		MagModule.disengage()
+		multichannel.pick_up_tip(tips_wash2_repeat['A1'])
+		for i in cols_to_extract:
+			multichannel.aspirate(200, MagWash2['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash2['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash2['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+			multichannel.aspirate(200, MagWash2['A1'])
+			multichannel.dispense(200, BindingPlate['A'+str(i)].top(4))
+			#multichannel.blow_out()
+		multichannel.return_tip()	
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_wash2_repeat['A'+str(i)])
+			multichannel.aspirate(100, MagWash2['A1'])
+			multichannel.dispense(100, BindingPlate['A'+str(i)])
+			multichannel.mix(nmix, 180, BindingPlate['A'+str(i)].bottom(5))
+			multichannel.blow_out()
+			multichannel.return_tip()
+		MagModule.engage()
+		protocol.delay(minutes=capture_min)
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_wash2_repeat['A'+str(i)])
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)])
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)]) # is this a calibration issue?
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.aspirate(200, BindingPlate['A'+str(i)].bottom(capture_depth))
+			multichannel.dispense(200, fixed_trash, rate = trash_speed)
+			#multichannel.blow_out()
+			multichannel.return_tip()
 	
-	### MagWash 1 ########################################
-	# add 500ul magwash 1, mix and return to tip box
-	protocol.comment('Adding magwash 1')
-	for i in range(0, 96): 
-		left_pipette.pick_up_tip(tips_wash1[wells_to_extract[i]])
-		left_pipette.aspirate(500, MagWash1['A1'])
-		left_pipette.dispense(500, BindingPlate[wells_to_extract[i]])
-		left_pipette.mix(10, 300, BindingPlate[wells_to_extract[i]])
-		left_pipette.return_tip() 
-	# engage capture
-	MagModule.engage()
-	protocol.delay(minutes=5)
-	# using dirty tips from before to move liquid back to reservoir
-	for i in range(0, 96): 
-		left_pipette.pick_up_tip(tips_wash1[wells_to_extract[i]])
-		left_pipette.aspirate(500, BindingPlate[wells_to_extract[i]])
-		left_pipette.dispense(500, MagWash1['A1'])
-		left_pipette.return_tip() 
-	MagModule.disengage()	
-	
-	### MagWash 2 - first time ########################################
-	# add 500ul magwash 2, mix and return to tip box
-	protocol.comment('Adding magwash 2- first time')
-	for i in range(0, 96): 
-		left_pipette.pick_up_tip(tips_wash2[wells_to_extract[i]])
-		left_pipette.aspirate(500, MagWash2['A1'])
-		left_pipette.dispense(500, BindingPlate[wells_to_extract[i]])
-		left_pipette.mix(10, 300, BindingPlate[wells_to_extract[i]])
-		left_pipette.return_tip() 
-	# engage capture
-	MagModule.engage()
-	protocol.delay(minutes=5)
-	# using dirty tips from before to move liquid back to reservoir
-	for i in range(0, 96): 
-		left_pipette.pick_up_tip(tips_wash2[wells_to_extract[i]])
-		left_pipette.aspirate(500, BindingPlate[wells_to_extract[i]])
-		left_pipette.dispense(500, MagWash1['A1']) # disposing into magwash 1 to not dirty the magwash 2 which is needed again
-		left_pipette.return_tip() 
-	MagModule.disengage()	
-	
-	### MagWash 2 - second time time ########################################
-	# add 500ul magwash 2, mix and return to tip box
-	protocol.comment('Adding magwash 2- first time')
-	for i in range(0, 96): 
-		left_pipette.pick_up_tip(tips_wash2rep[wells_to_extract[i]])
-		left_pipette.aspirate(500, MagWash2['A1'])
-		left_pipette.dispense(500, BindingPlate[wells_to_extract[i]])
-		left_pipette.mix(10, 300, BindingPlate[wells_to_extract[i]])
-		left_pipette.return_tip() 
-	# engage capture
-	MagModule.engage()
-	protocol.delay(minutes=5)
-	# using dirty tips from before to move liquid back to reservoir
-	for i in range(0, 96): 
-		left_pipette.pick_up_tip(tips_wash2rep[wells_to_extract[i]])
-		left_pipette.aspirate(500, BindingPlate[wells_to_extract[i]])
-		left_pipette.dispense(500, MagWash2['A1'])
-		left_pipette.return_tip() 
-	MagModule.disengage()	
+	if Dry:
+		protocol.comment('--------->Drying DNA')
+		protocol.delay(minutes=drying_min)
 
-	### Airdry ########################################
-	protocol.delay(minutes=15)
+	if Elute:
+		protocol.comment('--------->Eluting DNA')
+		MagModule.disengage()
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_elution['A'+str(i)])
+			multichannel.aspirate(elution_volume, BeadsAndWater['A2'])
+			multichannel.dispense(elution_volume, BindingPlate['A'+str(i)])
+			multichannel.mix(nmix, elution_to_plate, BindingPlate['A'+str(i)].bottom(capture_depth))
+			multichannel.blow_out()
+			multichannel.return_tip()
+		MagModule.engage()
+		protocol.delay(minutes=capture_min)
+		for i in cols_to_extract:
+			multichannel.pick_up_tip(tips_elution['A'+str(i)])
+			multichannel.aspirate(elution_to_plate, BindingPlate['A'+str(i)].bottom(capture_depth), rate=0.2)
+			multichannel.dispense(elution_to_plate, ElutionPlate['A'+str(i)])
+			#multichannel.blow_out()
+			multichannel.return_tip()
 
-	### Elution ########################################
-	protocol.comment('Eluting DNA')
-	# pipette water in and mix
-	for i in range(1, 13): 
-		right_pipette.pick_up_tip(tips_elution['A'+str(i)])
-		right_pipette.aspirate(elution_volume, BeadsAndWater['A3'])
-		right_pipette.dispense(elution_volume, BindingPlate['A'+str(i)])
-		right_pipette.mix(10, 25, BindingPlate['A'+str(i)])
-		right_pipette.return_tip() 
-	# capture
-	protocol.delay(minutes=5) # wait five minutes to elute
-	MagModule.engage()
-	protocol.delay(minutes=5)
-	# transfer to elution plate
-	for i in range(1, 13): 
-		right_pipette.pick_up_tip(tips_elution['A'+str(i)])
-		right_pipette.aspirate(elution_to_plate, BindingPlate['A'+str(i)])
-		right_pipette.dispense(elution_to_plate, ElutionPlate['A'+str(i)])
-		right_pipette.return_tip() 
+			
+	
+			
