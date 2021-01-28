@@ -45,7 +45,7 @@ export Suffix="_S[0-9]{1,3}_R[0-9]_001" # A regex pattern used to remove the suf
 export MinSVLen=250 # the minimum size for a sequence variant to be included in table
 export MaxSVLen=255 # the maximum size for a sequence variant to be included in table
 export RunSEPP=true # should SEPP fragment insertion be run to generate a phylogenetic tree?
-export RunPICRUST=true # should metagenomic inference be run?
+export RunPICRUST=false # should metagenomic inference be run?
 #------------------------
 echo $(date) Running on $(hostname)
 echo $(date) Loading QIIME2 environment
@@ -328,7 +328,8 @@ echo $(date) Trimming adapters
     --p-front-r $Rprimer \
     --p-match-adapter-wildcards \
     --p-discard-untrimmed \
-    --p-error-rate 0.15 \ 
+    --p-error-rate 0.15 \
+    --verbose \
     --o-trimmed-sequences $PWD/Intermediates/Reads_filt.qza
 else
   echo $(date) NOT trimming adapters
@@ -444,7 +445,7 @@ Hopefully no individual step should cause a massive loss in reads. For example: 
 ```{r}
 if(Sys.getenv("GolayCorrect")=="true"){
 ReadTracking<-
-  SampleSheet %>%
+  read_csv("Logs/Nreads_golay.txt") %>%
   select(Sample_ID, bcl2fastq=Nreads_illumina, Golay_Correction=Nreads_Golay)
 } else {  
   ReadTracking<-
