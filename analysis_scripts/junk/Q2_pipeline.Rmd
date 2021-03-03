@@ -1,0 +1,476 @@
+---
+title: "QIIME2 2020.11 Processing Pipeline v11"
+date: 'Run at `r format(Sys.time(), "%Y-%m-%d %H:%M")`'
+output: 
+  html_document:
+    code_folding: show
+    theme: spacelab
+    highlight: monochrome
+    fig_width: 11
+    fig_height: 8.5
+    toc: true
+    toc_float: true
+---
+
+# Instructions and User Parameters
+
+Modify the `User Parameters` section below to your liking. Then copy and paste the following into session on any wynton node. If this is your first time using any lab conda environment, add "source /turnbaugh/qb3share/shared_resources/Conda/etc/profile.d/conda.sh" to your ~/.bash_profile using nano or equivalent.
+
+```{bash, eval=F}
+#start copy at cat on the line below excluding the #
+#cat > qsubmit.sh<<'EOF'
+#!/bin/bash
+#$ -S /bin/bash
+#$ -o qiime2.log
+#$ -e qiime2.err
+#$ -cwd
+#$ -r y
+#$ -j y
+#$ -l mem_free=4G
+#$ -l scratch=20G
+#$ -l h_rt=96:0:0
+#$ -pe smp 24
+# User Parameters--------
+export SampleSheet=/turnbaugh/qb3share/jbisanz/caloric_restriction/newpipe/JBisanz_CRP_samplesheet.csv #an absolute link to the location of your illumina sample sheet csv file. This can be exported from the excel tracking sheet.
+export ReadDir=/turnbaugh/qb3share/SequencingData/201217_Biohub_JB_CalRes/ #an absolute directory containing your demultiplexed reads, can be in any subdirectory structure. Note: This is the directory structure as visible from the wynton cluster
+export TrimAdapters=true #Set to true if primer is in sequence and needs to be removed
+export GolayCorrect=true #Set to true if you used the dual-golay indexing strategy and want to recover unassigned reads using error correction
+export Fprimer="GTGYCAGCMGCCGCGGTAA" #515Fmod, replace if different primer. Note older V4f primer is GTGCCAGCMGCCGCGGTAA
+export Rprimer="GGACTACNVGGGTWTCTAAT" #806Rmod, replace if different primer Note older V4r primer is GGACTACHVGGGTWTCTAAT
+export TruncF=220 #equivalent to p-trunc-len-f
+export TruncR=150 #equivalent to p-trunc-len-r
+export TrimL=0 #equivalent to trim-left-f, updated to 0 as primers already stripped
+export TrimR=0 #equivalent to trim-left-r, updated to 0 as primers already stripped
+export Suffix="_S[0-9]{1,3}_R[0-9]_001" # A regex pattern used to remove the suffix from the reads. The current provided is the biohub pattern which would match crp9_day5_S56_R2_001.fastq.gz. 
+export MinSVLen=240 # the minimum size for a sequence variant to be included in table
+export MaxSVLen=270 # the maximum size for a sequence variant to be included in table
+
+#------------------------
+echo $(date) Running on $(hostname)
+echo $(date) Loading QIIME2 environment
+conda activate qiime2-2020.11
+export TMPDIR=$(mktemp -d /scratch/Q2-tmp_XXXXXXXX)
+Rscript -e "rmarkdown::render('AmpliconSeq_process.Rmd')"
+rm qsubmit.sh
+EOF
+qsub qsubmit.sh
+# end copy here
+```
+
+### !!!Do not modify below unless you want to tweak the processing.!!!
+
+***
+
+# System set up
+
+```{r sysset, message=F, warning=F}
+library(rmarkdown)
+library(tidyverse)
+library(dada2)
+library(plotly)
+library(ggtree)
+library(qiime2R)
+library(ShortRead)
+sessionInfo()
+getwd()
+```
+
+## Directories
+
+```{r dirset}
+dir.create("Intermediates", showWarnings=FALSE)
+dir.create("Output", showWarnings=FALSE)
+dir.create("Figures", showWarnings=FALSE)
+dir.create("Logs", showWarnings=FALSE)
+```
+
+***
+
+# Import Samples
+
+Import is using the provided sample sheet and looking for matching sample names in the provided read directory.
+
+```{r manifestbuild}
+SampleSheet<-
+  Sys.getenv("SampleSheet") %>%
+  read_csv(., skip=19)
+
+fastqs<-
+  Sys.getenv("ReadDir") %>%
+  list.files(., recursive = TRUE, full.names = TRUE, pattern="\\.fastq\\.gz") %>%
+  tibble(File=.) %>%
+  mutate(Sample_ID=basename(File) %>% gsub(Sys.getenv("Suffix"), "", .) %>% gsub("\\.fastq\\.gz","", .)) %>%
+  mutate(Direction=case_when(
+    grepl("_R1_", .$File) ~ "Forward_Read",
+    grepl("_R2_", .$File) ~ "Reverse_Read"
+  )) %>%
+    spread(key=Direction, value=File)
+
+SampleSheet<-SampleSheet %>% left_join(fastqs)
+
+SampleSheet<-SampleSheet %>% mutate(Nreads_illumina=countFastq(Forward_Read)$records)
+
+write_csv(SampleSheet, "Logs/Nreads_raw.txt")
+
+if(Sys.getenv("GolayCorrect")!="true"){
+  fastqs %>%
+    select(`sample-id`=1, forward=2, reverse=3) %>%
+    gather(-`sample-id`, value=`absolute-filepath`, key=`direction`) %>%
+    select(1,3,2) %>%
+    arrange(`sample-id`) %>%
+    filter(`sample-id`!="Undetermined") %>%
+    write_csv("Intermediates/manifest.csv")
+}
+```
+
+## Golay correction
+
+```{r golay}
+if(Sys.getenv("GolayCorrect")=="true"){
+  if(sum(grepl("Undetermined", fastqs$Sample_ID))!=1){stop("Unassigned reads not found")}
+  dir.create("Golay_reads", showWarnings = F)
+  
+  # make a copy to add reads to. Will append a note to each read id  with the new barcodes and number of errors
+  sink<-
+  c(fastqs$Forward_Read, fastqs$Reverse_Read) %>%
+    grep("Undetermined",. ,invert = T, value=T) %>%
+    sapply(., function(x) file.copy(x, paste0("Golay_reads/", basename(x))))
+  rm(sink) # a dummy variable to capture success messages for file copies
+  
+  streamsize=1e6 # stream 1 million reads at atime
+  for_file<-FastqStreamer(subset(fastqs, Sample_ID=="Undetermined")$Forward_Read, n=streamsize)
+  rev_file<-FastqStreamer(subset(fastqs, Sample_ID=="Undetermined")$Reverse_Read, n=streamsize)
+
+  repeat{
+    for_reads<-yield(for_file)
+    rev_reads<-yield(rev_file)
+    if(length(for_reads) ==0){break}
+    
+    barcodes<-
+      for_reads@id %>%
+      as.character() %>%
+      tibble(ReadID=.) %>%
+      mutate(Barcode=str_sub(ReadID, -25)) %>%
+      separate(Barcode, c("i7","i5"), sep="\\+")
+    
+    i7_cor<-barcodes %>% 
+      pull(i7) %>% 
+      unique() %>% 
+      decode_golay() %>% 
+      select(i7=original_bc, i7_corrected=corrected_bc, i7_errors=n_errors)
+    
+    i5_cor<-barcodes %>% 
+      pull(i5) %>% 
+      unique() %>% 
+      DNAStringSet() %>%
+      reverseComplement() %>%
+      as.character() %>%
+      decode_golay() %>% 
+      select(i5=original_bc, i5_corrected=corrected_bc, i5_errors=n_errors)
+    
+    #reverse complement barcodes back to sample sheet specs
+    i5_cor$i5<-as.character(reverseComplement(DNAStringSet(i5_cor$i5)))
+    i5_cor$i5_corrected[!is.na(i5_cor$i5_corrected)]<-as.character(reverseComplement(DNAStringSet(i5_cor$i5_corrected[!is.na(i5_cor$i5_corrected)])))
+   
+    barcodes<- 
+      barcodes %>%
+      left_join(i7_cor) %>%
+      left_join(i5_cor) %>%
+      left_join(
+        SampleSheet %>% select(Sample_ID, i7_corrected=index, i5_corrected=index2)
+      ) %>%
+      select(Sample_ID, everything())
+    
+    write_tsv(barcodes, "Logs/golay.log", append=TRUE)
+
+    barcodes<-
+      barcodes %>% 
+      filter(!is.na(Sample_ID)) %>%
+      mutate(NewReadID=paste0(" corrected_bc:", i7_corrected, "+", i5_corrected, " n_errors:", i7_errors, "+", i5_errors)) %>%
+      select(Sample_ID, ReadID, NewReadID)
+       
+    sink<-
+      barcodes$Sample_ID %>%
+      unique() %>%
+      lapply(., function(x){
+      tm<-barcodes %>% filter(Sample_ID==x)
+      idx<-which(for_reads@id %in% tm$ReadID)
+      fr<-for_reads[idx]
+      rr<-rev_reads[idx]
+      tm<-tm[match(tm$ReadID, fr@id),]
+      fr@id<-BStringSet(paste0(as.character(fr@id), tm$NewReadID))
+      rr@id<-BStringSet(paste0(as.character(rr@id), tm$NewReadID))
+
+      fastqs %>% 
+        filter(Sample_ID==x) %>%
+        pull(Forward_Read) %>%
+        basename() %>%
+        paste0("Golay_reads/",.) %>%
+        writeFastq(fr, file=., mode="a")
+      
+      fastqs %>% 
+        filter(Sample_ID==x) %>%
+        pull(Reverse_Read) %>%
+        basename() %>%
+        paste0("Golay_reads/",.) %>%
+        writeFastq(rr, file=., mode="a")
+    })
+     rm(sink)   
+  }
+
+  close(for_file)
+  close(rev_file)
+}
+
+SampleSheet<-SampleSheet %>% mutate(Nreads_illumina=countFastq(paste0("Golay_reads/", basename(Forward_Read)))$records)
+write_csv(SampleSheet, "Logs/Nreads_golay.txt")
+
+
+```
+
+## Read quality
+
+```{r plotreadqual}
+qcsamps<-manifest %>% filter(`sample-id` %in% sample(manifest$`sample-id`, 3)) %>% pull(`absolute-filepath`)
+plotQualityProfile(qcsamps)
+ggsave("figures/ReadQuality.pdf", device="pdf", height=8.5, width=11)
+```
+
+
+## Generate Read Artifact
+
+```{bash makereads}
+if [ ! -f $PWD/Intermediates/Reads.qza ]; then
+  echo $(date) Generating Read Artifact
+  
+  qiime tools import \
+    --type 'SampleData[PairedEndSequencesWithQuality]' \
+    --input-path $PWD/Intermediates/manifest.csv \
+    --output-path $PWD/Intermediates/Reads.qza \
+    --input-format PairedEndFastqManifestPhred33
+    
+else
+    echo $(date) Skipping making Read Artifact as already complete
+fi
+```
+
+## Primer Trimming
+
+```{bash primertrim}
+if $TRIMADAPTERS; then
+echo $(date) Trimming adapters
+  qiime cutadapt trim-paired \
+    --i-demultiplexed-sequences $PWD/Intermediates/Reads.qza \
+    --p-cores $NSLOTS \
+    --p-front-f $Fprimer \
+    --p-front-r $Rprimer \
+    --p-match-adapter-wildcards \
+    --o-trimmed-sequences $PWD/Intermediates/Reads_filt.qza
+else
+  echo $(date) NOT trimming adapters
+  mv $PWD/Intermediates/Reads.qza $PWD/Intermediates/Reads_filt.qza
+fi
+```
+
+***
+
+# Dada2 and Feature Table Building
+
+```{bash dada2}
+if [ ! -f $PWD/Output/Dada_stats.qza ]; then
+  echo $(date) Running Dada2
+  
+  qiime dada2 denoise-paired \
+    --i-demultiplexed-seqs $PWD/Intermediates/Reads_filt.qza \
+    --p-trunc-len-f $TruncF \
+    --p-trunc-len-r $TruncR \
+    --p-trim-left-f $TrimL \
+    --p-trim-left-r $TrimR \
+    --p-n-threads $NSLOTS \
+    --o-table $PWD/Output/SVtable.qza \
+    --o-representative-sequences $PWD/Output/SVsequences.qza \
+    --o-denoising-stats $PWD/Output/Dada_stats.qza \
+    --verbose
+    
+else
+  echo $(date) Skipping Dada2 as already complete
+fi
+```
+
+## Read Tracking
+
+```{r readtracking}
+counts<-read_qza("Output/Dada_stats.qza")
+interactive_table(counts$data)
+counts<-counts$data %>%
+  rownames_to_column("SampleID") %>%
+  select(SampleID, input, filtered, denoised, merged, non.chimeric) %>%
+  gather(-SampleID, key="Step", value="Reads") %>%
+  mutate(Step=factor(Step, levels=c("input", "filtered","denoised", "merged", "non.chimeric"))) %>%
+  ggplot(aes(x=Step, y=Reads, group=SampleID, label=SampleID)) +
+  geom_line() +
+  theme_bw()
+ggplotly(counts)
+ggsave("figures/ReadLoss.pdf", counts, device="pdf", useDingbats=F, height=8.5, width=11)
+```
+
+## Read Count Distribution
+
+```{r countdist}
+counts<-read_qza("Output/Dada_stats.qza")
+ggplot(data.frame(Nread=counts$data$non.chimeric), aes(x=Nread)) +
+  geom_freqpoly() +
+  theme_bw() +
+  xlab("# reads") +
+  ylab("# samples")
+ggsave("figures/ReadDistribution.pdf",device="pdf", useDingbats=F, height=8.5, width=11)
+```
+
+## SV size Distribution
+
+```{r svsizedist}
+seqs<-read_qza("Output/SVsequences.qza")
+summary(sapply(as.character(seqs$data), nchar))
+ggplot(data.frame(Length=sapply(as.character(seqs$data), nchar)), aes(x=Length)) +
+  geom_freqpoly() +
+  theme_bw() +
+  xlab("# bp") +
+  ylab("# SVs")
+ggsave("figures/SVsizedistribution.pdf",device="pdf", useDingbats=F, height=8.5, width=11)
+```
+
+***
+
+# Taxonomic Assignment
+
+## QIIME feature-classifier
+
+```{bash q2tax}
+if [ ! -f $PWD/Output/SV_taxonomy_QIIME.qza ]; then
+  echo $(date) Assignning Taxonomy with QIIME2
+  
+  qiime feature-classifier classify-sklearn \
+    --i-classifier /turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/q2_2020.6/silva-138-99-515-806-nb-classifier.qza \
+    --i-reads $PWD/Output/SVsequences.qza \
+    --o-classification $PWD/Output/SV_taxonomy_QIIME.qza \
+    --p-n-jobs $NSLOTS
+else
+  echo $(date) Skipping QIIME2 taxonomy as already complete
+fi
+```
+
+## Dada2 feature-classifier
+
+```{r dadatax}
+if(!file.exists("Output/SV_taxonomy_Dada2.txt")){
+  message(date(), " Assigning taxonomy with dada2")
+  seqs<-read_qza("Output/SVsequences.qza")$data
+  taxonomy <- assignTaxonomy(as.character(seqs), "/turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/q2_2020.6/silva_nr_v138_train_set.fa.gz", multithread=12)
+  taxonomy <- addSpecies(taxonomy, "/turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/q2_2020.6/silva_species_assignment_v138.fa.gz", allowMultiple=TRUE)
+  as.data.frame(taxonomy) %>% rownames_to_column("SV") %>% write_tsv(., "Output/SV_taxonomy_Dada2.txt")
+} else {
+    message(date(), " Skipping Dada2 taxonomy as already complete")
+}
+```
+
+
+***
+
+# Build Phylogenies
+
+
+## De Novo
+
+```{bash denovo}
+if [ ! -f $PWD/Output/SVtree_denovo.qza ]; then
+  echo $(date) Building Tree denovo
+  
+  qiime phylogeny align-to-tree-mafft-fasttree \
+    --i-sequences $PWD/Output/SVsequences.qza \
+    --o-alignment $PWD/Output/SVsequences_aligned.qza \
+    --o-masked-alignment $PWD/Output/SVsequences_aligned_masked.qza \
+    --o-tree $PWD/Output/SVtree_unrooted.qza \
+    --o-rooted-tree $PWD/Output/SVtree_denovo.qza \
+    --p-n-threads $NSLOTS
+    
+else
+  echo $(date) Skipping making Tree as already complete
+fi
+```
+
+
+```{r plotdenovo}
+tree<-read_qza("Output/SVtree_denovo.qza")$data
+gtree<-ggtree(tree)
+gtree<-gtree %<+% (tibble(Tip=tree$tip.label) %>% mutate(Type=case_when(grepl("[A-z]", Tip)~"User", TRUE~"Reference"))) 
+gtree +
+  geom_tippoint(aes(alpha=Type), color="indianred") +
+  scale_alpha_manual(values=c(1, 1))
+ggsave("figures/Tree_DeNovo.pdf",device="pdf", useDingbats=F, height=8.5, width=11)
+```
+
+
+## Fragment Insertion
+
+```{bash sepp}
+if [ ! -f $PWD/Output/SVtree_inserted.qza ]; then
+  echo $(date) Building Tree with SEPP
+  
+  qiime fragment-insertion sepp \
+    --i-representative-sequences $PWD/Output/SVsequences.qza \
+    --i-reference-database /turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/q2_2020.6/sepp-refs-silva-128.qza \
+    --p-threads $NSLOTS \
+    --o-tree $PWD/Output/SVtree_inserted.qza \
+    --o-placements $PWD/Output/SVplacements.qza \
+    --verbose
+    
+else
+  echo $(date) Skipping SEPP as already complete
+fi
+```
+
+```{r plotsepp}
+tree<-read_qza("Output/SVtree_inserted.qza")$data
+gtree<-ggtree(tree)
+gtree<-gtree %<+% (tibble(Tip=tree$tip.label) %>% mutate(Type=case_when(grepl("[A-z]", Tip)~"User", TRUE~"Reference"))) 
+gtree +
+  geom_tippoint(aes(alpha=Type), color="indianred") +
+  scale_alpha_manual(values=c(0, 1))
+ggsave("figures/Tree_Insertion.pdf",device="pdf", useDingbats=F, height=8.5, width=11)
+```
+
+***
+
+## PICRUST2 Metagenome Inference
+
+Currently dissabled as picrust2 plugin not currently up to date for 2020.6
+
+```{bash picrust, eval=F}
+qiime picrust2 full-pipeline \
+   --i-table $PWD/Output/SVtable.qza \
+   --i-seq $PWD/Output/SVsequences.qza \
+   --output-dir $PWD/Output/picrust \
+   --p-threads $NSLOTS \
+   --verbose
+```
+
+# Clean Up
+
+Removing the Read artifacts to avoid double storage of the sequencing data.
+
+```{bash}
+rm -r Intermediates
+```
+
+***
+
+Pipeline complete. Additional QC may be required.
+
+Desired files for downstream analysis that can be read directly into R (using `qiime2R::read_qza("artifact.qza")$data` for qza files):
+
+* SVtable.qza
+* SVsequences.qza
+* SV_taxonomy_Dada2.txt
+* SVtree_denovo.qza
+
+***

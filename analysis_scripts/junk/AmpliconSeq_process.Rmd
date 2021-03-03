@@ -1,5 +1,5 @@
 ---
-title: "QIIME2 2020.11 Processing Pipeline v0.1"
+title: "QIIME2 2020.11 Processing Pipeline v11"
 date: 'Run at `r format(Sys.time(), "%Y-%m-%d %H:%M")`'
 output: 
   html_document:
@@ -42,16 +42,15 @@ export TruncR=150 #equivalent to p-trunc-len-r
 export TrimL=0 #equivalent to trim-left-f, updated to 0 as primers already stripped
 export TrimR=0 #equivalent to trim-left-r, updated to 0 as primers already stripped
 export Suffix="_S[0-9]{1,3}_R[0-9]_001" # A regex pattern used to remove the suffix from the reads. The current provided is the biohub pattern which would match crp9_day5_S56_R2_001.fastq.gz. 
-export MinSVLen=250 # the minimum size for a sequence variant to be included in table
-export MaxSVLen=255 # the maximum size for a sequence variant to be included in table
-export RunSEPP=true # should SEPP fragment insertion be run to generate a phylogenetic tree?
-export RunPICRUST=false # should metagenomic inference be run?
+export MinSVLen=240 # the minimum size for a sequence variant to be included in table
+export MaxSVLen=270 # the maximum size for a sequence variant to be included in table
+
 #------------------------
 echo $(date) Running on $(hostname)
 echo $(date) Loading QIIME2 environment
 conda activate qiime2-2020.11
 export TMPDIR=$(mktemp -d /scratch/Q2-tmp_XXXXXXXX)
-Rscript -e "rmarkdown::render('AmpliconSeq_q2-2020.11.Rmd')"
+Rscript -e "rmarkdown::render('AmpliconSeq_process.Rmd')"
 rm qsubmit.sh
 EOF
 qsub qsubmit.sh
@@ -316,7 +315,7 @@ fi
 
 # Primer Trimming
 
-In this step, the reads are being scanned for the presence of the primary PCR primers. In this sequencing strategy, the primers are sequenced so a valid read will start with a primer. We are only keeping sequences which contain a valid primer seq with no more than 3 errors in 20bp (--p-error-rate 0.15).
+In this step, the reads are being scanned for the presence of the primary PCR primers. In this strategy, the primers are sequenced so a valid read will start with a primer. We are only keeping sequences which contain a valid primer seq with no more than 3 errors in 20bp (--p-error-rate 0.15).
 
 ```{bash primertrim}
 if $TRIMADAPTERS; then
@@ -328,8 +327,7 @@ echo $(date) Trimming adapters
     --p-front-r $Rprimer \
     --p-match-adapter-wildcards \
     --p-discard-untrimmed \
-    --p-error-rate 0.15 \
-    --verbose \
+    --p-error-rate 0.15 \ 
     --o-trimmed-sequences $PWD/Intermediates/Reads_filt.qza
 else
   echo $(date) NOT trimming adapters
@@ -341,7 +339,7 @@ fi
 
 # Dada2 and Feature Table Building
 
-This next step incompasses the Dada2 workflow. Reads are trimmed, quality filtered, denoised, and chimeras are removed.
+This next step incompasses the Dada2 workflow. Reads are trimmed, quality filtered, denoises, and chimeras are removed.
 
 ```{bash dada2}
 if [ ! -f $PWD/Output/Dada_stats.qza ]; then
@@ -440,12 +438,12 @@ ggsave("Figures/Reads_by_layout.pdf", height=8.5, width=11, useDingbats=F)
 
 ## Read Loss by Step
 
-Hopefully no individual step should cause a massive loss in reads. For example: quality filtering.
+Hopefully no individual stpe should cause a massive loss in reads. For example: quality filtering.
 
 ```{r}
 if(Sys.getenv("GolayCorrect")=="true"){
 ReadTracking<-
-  read_csv("Logs/Nreads_golay.txt") %>%
+  SampleSheet %>%
   select(Sample_ID, bcl2fastq=Nreads_illumina, Golay_Correction=Nreads_Golay)
 } else {  
   ReadTracking<-
@@ -519,60 +517,31 @@ else
 fi
 ```
 
+```{r}
+read_qza("ASV_q2taxonomy.qza") %>%
+  parse_taxonomy()
+```
+
+
 ## Dada2 feature-classifier
 
 ```{r dadatax}
-if(!file.exists("Output/ASV_d2taxonomy.txt")){
+if(!file.exists("Output/SV_taxonomy_Dada2.txt")){
   message(date(), " Assigning taxonomy with dada2")
-  seqs<-read_qza("Output/ASV_sequences.qza")$data
-  taxonomy <- assignTaxonomy(as.character(seqs), "/turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/dada2_silva/silva_nr99_v138_wSpecies_train_set.fa.gz", multithread=Sys.getenv("NSLOTS"))
-  taxonomy <- addSpecies(taxonomy, "/turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/dada2_silva/silva_species_assignment_v138.fa.gz", allowMultiple=TRUE)
-  
-  as.data.frame(taxonomy) %>% 
-    rownames_to_column("Sequence") %>% 
-    select(everything(), Species_ambiguous=9) %>% 
-    left_join(tibble(ASV=names(seqs), Sequence=as.character(seqs))) %>%
-    select(ASV, Kingdom, Phylum, Class, Order, Family, Genus, Species, Species_ambiguous, Sequence) %>%
-    write_tsv("Output/ASV_d2taxonomy.txt")
+  seqs<-read_qza("Output/SVsequences.qza")$data
+  taxonomy <- assignTaxonomy(as.character(seqs), "/turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/q2_2020.6/silva_nr_v138_train_set.fa.gz", multithread=12)
+  taxonomy <- addSpecies(taxonomy, "/turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/q2_2020.6/silva_species_assignment_v138.fa.gz", allowMultiple=TRUE)
+  as.data.frame(taxonomy) %>% rownames_to_column("SV") %>% write_tsv(., "Output/SV_taxonomy_Dada2.txt")
 } else {
     message(date(), " Skipping Dada2 taxonomy as already complete")
 }
 ```
 
-## Classification Rates
-
-Depending on the origin of the sample there could be quite variable rates of assignment to the genus and species. See plot below and compare the Dada2 and QIIME2 classifiers. Note: both are currently using the SILVA 138 database. The current setting for the dada2 version reports has two columns, one which is via the default classifier, and the other which reports all possible species which are a perfect match (Species_ambiguous). Which method to use for your analysis depends on the questions you want to ask, I (JB) prefer reporting all possible species rather than not assigned.
-
-```{r}
-read_qza("Output/ASV_q2taxonomy.qza")$data %>%
-  parse_taxonomy() %>%
-  apply(2, function(x) sum(!is.na(x))/length(x)*100) %>%
-  data.frame(Classification_Rate=.) %>%
-  rownames_to_column("Level") %>%
-  mutate(Method="Q2_classifier") %>%
-  bind_rows(
-    read_tsv("Output/ASV_d2taxonomy.txt") %>%
-    select(2:8) %>%
-    apply(2, function(x) sum(!is.na(x))/length(x)*100) %>%
-    data.frame(Classification_Rate=.) %>%
-    rownames_to_column("Level") %>%
-    mutate(Method="Dada2_classifier")
-) %>%
-  mutate(Level=factor(Level, levels=unique(Level))) %>%
-  ggplot(aes(x=Level, y=Classification_Rate, color=Method, group=Method)) +
-  geom_line() +
-  geom_point() +
-  theme_q2r() +
-  ylab("Classification Rate (%)") +
-  xlab("Taxonomic Level")
-
-ggsave("Figures/Taxonomic_Classification.pdf", device="pdf", height=3, width=4, useDingbats=F)
-
-```
 
 ***
 
-# Build Phylogenetic Trees
+# Build Phylogenies
+
 
 ## De Novo
 
@@ -581,11 +550,11 @@ if [ ! -f $PWD/Output/SVtree_denovo.qza ]; then
   echo $(date) Building Tree denovo
   
   qiime phylogeny align-to-tree-mafft-fasttree \
-    --i-sequences $PWD/Output/ASV_sequences.qza \
-    --o-alignment $PWD/Intermediates/ASV_alignment.qza \
-    --o-masked-alignment $PWD/Intermediates/ASV_masked.qza \
-    --o-tree $PWD/Intermediates/ASV_unrootedtree.qza \
-    --o-rooted-tree $PWD/Output/ASV_denovotree.qza \
+    --i-sequences $PWD/Output/SVsequences.qza \
+    --o-alignment $PWD/Output/SVsequences_aligned.qza \
+    --o-masked-alignment $PWD/Output/SVsequences_aligned_masked.qza \
+    --o-tree $PWD/Output/SVtree_unrooted.qza \
+    --o-rooted-tree $PWD/Output/SVtree_denovo.qza \
     --p-n-threads $NSLOTS
     
 else
@@ -595,121 +564,77 @@ fi
 
 
 ```{r plotdenovo}
-read_qza("Output/ASV_denovotree.qza")$data %>%
-  ggtree() %<+% read_tsv("Output/ASV_d2taxonomy.txt") +
-  geom_tippoint(aes(color=Phylum)) +
-  theme(legend.position="right")
-ggsave("Figures/Tree_DeNovo.pdf",device="pdf", useDingbats=F, height=8.5, width=11)
+tree<-read_qza("Output/SVtree_denovo.qza")$data
+gtree<-ggtree(tree)
+gtree<-gtree %<+% (tibble(Tip=tree$tip.label) %>% mutate(Type=case_when(grepl("[A-z]", Tip)~"User", TRUE~"Reference"))) 
+gtree +
+  geom_tippoint(aes(alpha=Type), color="indianred") +
+  scale_alpha_manual(values=c(1, 1))
+ggsave("figures/Tree_DeNovo.pdf",device="pdf", useDingbats=F, height=8.5, width=11)
 ```
 
 
 ## Fragment Insertion
 
 ```{bash sepp}
-if [ ! -f $PWD/Output/ASV_insertiontree.qza ] & $RunSEPP ; then
+if [ ! -f $PWD/Output/SVtree_inserted.qza ]; then
   echo $(date) Building Tree with SEPP
   
   qiime fragment-insertion sepp \
-    --i-representative-sequences $PWD/Output/ASV_sequences.qza \
-    --i-reference-database /turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/sepp_silva128/sepp-refs-silva-128.qza \
+    --i-representative-sequences $PWD/Output/SVsequences.qza \
+    --i-reference-database /turnbaugh/qb3share/shared_resources/databases/AmpliconTaxonomyDBs/q2_2020.6/sepp-refs-silva-128.qza \
     --p-threads $NSLOTS \
-    --o-tree $PWD/Output/ASV_insertiontree.qza \
-    --o-placements $PWD/Output/ASV_placements.qza \
+    --o-tree $PWD/Output/SVtree_inserted.qza \
+    --o-placements $PWD/Output/SVplacements.qza \
     --verbose
     
 else
-  echo $(date) Skipping SEPP
+  echo $(date) Skipping SEPP as already complete
 fi
+```
+
+```{r plotsepp}
+tree<-read_qza("Output/SVtree_inserted.qza")$data
+gtree<-ggtree(tree)
+gtree<-gtree %<+% (tibble(Tip=tree$tip.label) %>% mutate(Type=case_when(grepl("[A-z]", Tip)~"User", TRUE~"Reference"))) 
+gtree +
+  geom_tippoint(aes(alpha=Type), color="indianred") +
+  scale_alpha_manual(values=c(0, 1))
+ggsave("figures/Tree_Insertion.pdf",device="pdf", useDingbats=F, height=8.5, width=11)
 ```
 
 ***
 
-# PICRUST2 Metagenome Inference
+## PICRUST2 Metagenome Inference
 
-```{r picrustprep}
-if(Sys.getenv("RunPICRUST")=="true"){
-  read_qza("Output/ASV_sequences.qza")$data %>%
-    writeXStringSet("Output/ASV_sequences.fa")
-  read_qza("Output/ASV_table.qza")$data %>%
-    as.data.frame() %>%
-    rownames_to_column("ASV") %>%
-    write_tsv("Output/ASV_table.tsv")
-}
+Currently dissabled as picrust2 plugin not currently up to date for 2020.6
+
+```{bash picrust, eval=F}
+qiime picrust2 full-pipeline \
+   --i-table $PWD/Output/SVtable.qza \
+   --i-seq $PWD/Output/SVsequences.qza \
+   --output-dir $PWD/Output/picrust \
+   --p-threads $NSLOTS \
+   --verbose
 ```
-
-```{bash picrust}
-if RunPICRUST; then
-  conda activate picrust_2.3.0b
-  picrust2_pipeline.py -s $PWD/Output/ASV_sequences.fa -i $PWD/Output/ASV_table.tsv -o $PWD/Output/picrust -p $NSLOTS
-  conda deactivate
-else
-  echo $(date) Skipping PICRUST2
-fi
-```
-
-# Exploratory Data Analysis
-
-## PCA
-
-```{r}
-pc<-
-read_qza("Output/ASV_table.qza")$data %>%
-  make_clr() %>%
-  t() %>%
-  prcomp()
-
-exp<-(pc$sdev^2)/sum(pc$sdev^2)*100
-exp<-round(exp, 2)
-
-pc<-
-pc$x %>%
-  as.data.frame() %>%
-  rownames_to_column("Sample_ID") %>%
-  ggplot(aes(x=PC1, y=PC2, label=Sample_ID)) +
-  geom_point() +
-  theme_q2r() +
-  xlab(paste0("PC1:", exp[1],"%")) +
-  ylab(paste0("PC2:", exp[2],"%")) +
-  ggtitle("Exploratory Compositional PCA")
-
-ggplotly(pc)
-
-ggsave("Figures/PCA.pdf", pc, height=5, width=5)
-```
-
-## Genus Level Composition
-
-```{r}
-qiime2R::taxa_heatmap(
-  features=summarize_taxa(
-              features=read_qza("Output/ASV_table.qza")$data,
-              taxonomy=read_qza("Output/ASV_q2taxonomy.qza")$data %>% parse_taxonomy()
-            )$Genus
-)
-
-ggsave("Figures/Genus_Heatmap.pdf", height=8, width=10.5)
-
-```
-
 
 # Clean Up
 
-Removing the Read artifacts to avoid double storage of the sequencing data and compress golay log if it exists.
+Removing the Read artifacts to avoid double storage of the sequencing data.
 
 ```{bash}
-rm Intermediates/Reads.qza
-rm Intermediates/Reads_filt.qza
-pigz Logs/golay.log
+rm -r Intermediates
 ```
 
 ***
 
-Pipeline complete. Additional QC may be required. See Output directory for the following files:
+Pipeline complete. Additional QC may be required.
 
-* ASV_table.qza: Your feature table
-* ASV_d2taxonomy.txt: Your taxonomy and ASV sequence information.
-* ASV_denovotree.qza: A de novo phylogenetic tree for UniFrac/PhILR, etc.
+Desired files for downstream analysis that can be read directly into R (using `qiime2R::read_qza("artifact.qza")$data` for qza files):
 
- Consider as well examining the PICRUST2 results and the ASV_insertiontree.qza which might provide a more accurate reference for phylogenetic methods.
+* SVtable.qza
+* SVsequences.qza
+* SV_taxonomy_Dada2.txt
+* SVtree_denovo.qza
 
 ***
