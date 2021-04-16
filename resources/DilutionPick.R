@@ -75,6 +75,7 @@ tracking<-tracking %>%
 
 amps<-
 amps %>% dplyr::rename(Well_384=Well) %>% left_join(tracking) %>%
+  filter(!grepl("^Empty", SampleID)) %>%
   dplyr::select(SampleID, dilution, Well_96, Well_384, Cycle, RFU)
 
 if(is.null(opt$rfu)){opt$rfu<-amps %>% filter(dilution==1 & Cycle==max(amps$Cycle)) %>% pull(RFU) %>% median()}
