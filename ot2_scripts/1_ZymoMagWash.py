@@ -21,8 +21,8 @@ def run(protocol: protocol_api.ProtocolContext):
 	Elute = True
 
 	# set tweakable variables
-	elution_volume = 50 # ul of water to add to final beads
-	elution_to_plate = 40 # ul to transfer to final elution plate
+	elution_volume = 100 # ul of water to add to final beads
+	elution_to_plate = 70 # ul to transfer to final elution plate
 	capture_depth = -3 # depth below ideal bottom of plate to remove supernatants, this may be required as a function of a poor calibration or labware def
 	capture_min = 2 # number of minutes to capture beads on magnets
 	cols_to_extract = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] # which columns should be extracted?
@@ -262,13 +262,13 @@ def run(protocol: protocol_api.ProtocolContext):
 			multichannel.aspirate(elution_volume, BeadsAndWater['A2'])
 			multichannel.dispense(elution_volume, BindingPlate['A'+str(i)])
 			multichannel.mix(nmix, elution_to_plate, BindingPlate['A'+str(i)].bottom(capture_depth))
-			multichannel.blow_out()
+			#multichannel.blow_out()
 			multichannel.return_tip()
 		MagModule.engage()
 		protocol.delay(minutes=capture_min)
 		for i in cols_to_extract:
 			multichannel.pick_up_tip(tips_elution['A'+str(i)])
-			multichannel.aspirate(elution_to_plate, BindingPlate['A'+str(i)].bottom(capture_depth), rate=0.2)
+			multichannel.aspirate(elution_to_plate, BindingPlate['A'+str(i)].bottom(capture_depth+1), rate=0.2)
 			multichannel.dispense(elution_to_plate, ElutionPlate['A'+str(i)])
 			#multichannel.blow_out()
 			multichannel.return_tip()
