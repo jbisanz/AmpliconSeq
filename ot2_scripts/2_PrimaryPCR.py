@@ -4,7 +4,7 @@ from opentrons import protocol_api
 loadmastermix = True #if mastermix is to be loaded from 12-well reservoir or if it has been manually pipetted True/False
 Nmix = 5
 mix_volume = 3
-wells_to_load = range(1,13) # the range of columns to load, note that the last number needs to be one greater than the intended well, ie range(1,13) is columns 1:12
+wells_to_load = [1,2,3,4,5,6,7,8,9,10,11,12] # the range of columns to load, note that the last number needs to be one greater than the intended well, ie range(1,13) is columns 1:12
 
 # metadata
 metadata = {
@@ -24,7 +24,7 @@ def run(protocol: protocol_api.ProtocolContext):
 	gDNA = protocol.load_labware('biorad_96_wellplate_200ul_pcr', '1') # skirted 96 well plate containing extracted DNA
 
 	# define pipettes
-	left_pipette = protocol.load_instrument('p20_single_gen2', 'left', tip_racks=[tips4, tips7])
+	#left_pipette = protocol.load_instrument('p20_single_gen2', 'left', tip_racks=[tips4, tips7])
 	right_pipette = protocol.load_instrument('p20_multi_gen2', 'right', tip_racks=[tips4, tips7])
 
 	if loadmastermix:
