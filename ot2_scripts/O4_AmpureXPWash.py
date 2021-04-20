@@ -17,14 +17,14 @@ def run(protocol: protocol_api.ProtocolContext):
 	reservoir_speed = 80 # speed (ul/s)  with which to draw liquids from reservoir
 	wash_volume = 150 # ul of ethanol for bead washes
 	elution_volume = 30 # ul of water to add to final beads
-	elution_to_plate = 20 # ul to transfer to final elution plate
+	elution_to_plate = 25 # ul to transfer to final elution plate
 	incubation_time = 5 #number of minutes for DNA to mix with beads before capture
 	capture_time = 2 #number of minutes to capture on stand
 	dry_time = 5 #number of minutes to dry beads
 	reservoir = True #If the using the 12 channel reservoirs, go True, otherwise dispense into 96-well deep well plate along similar columns.
 	vertical_space = 2 #number of mm for pipette head to be above well for dispensing
 	well_space = 1 #number of mm from bottom of well to draw from (default is 1mm)
-	mix_beads = False #should the beads be mixed before use?
+	mix_beads = True #should the beads be mixed before use?
 	
 	# define deck layout
 	MagModule = protocol.load_module('magnetic module gen2', 1)
@@ -128,7 +128,7 @@ def run(protocol: protocol_api.ProtocolContext):
 		right_pipette.aspirate(elution_volume, BeadsAndWater['A4'])
 		right_pipette.dispense(elution_volume, BindingPlate['A'+str(i)])
 		right_pipette.mix(5, elution_volume*0.7, BindingPlate['A'+str(i)])
-		right_pipette.blow_out()
+		#right_pipette.blow_out()
 		right_pipette.touch_tip()
 		right_pipette.return_tip()
 
