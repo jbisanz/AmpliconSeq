@@ -18,15 +18,16 @@ Any given sequencing run produces a set number of reads: for example ~15 million
 - [ ] 1 box 20ul opentrons filter tips
 
 ## Protocol
-- [ ] For 96 well plate, prepare 110 reactions (11mL dsDNA HS buffer, 55µL dsDNA HS reagent dye) in a reagent reservoir.
+- [ ] For 96 well plate, prepare 110 reactions (11mL QuantIt buffer (1xTE), 55µL QuantIt reagent dye) in a reagent reservoir.
 - [ ] Fill each well of 96 well plate with 100 µL reaction mix (samples plate)
 - [ ] Fill 1st column of second plate with 90 µL reaction mix (standards plate)
 - [ ] To full 96 well black plate (sample plate), transfer 1 µL of eached indexed PCR product and mix by pipetting
-- [ ] to standards plate, transfer 10 µL of the kit's dsDNA HS standards (0, 0.5, 1, 2, 4, 6, 8, 10 ng/ul)
+- [ ] to standards plate, transfer 10 µL of the kit's dsDNA HS standards (0, 1.56, 3.125, 6.25, 12.5, 25, 50, 100 ng/ul)
 - [ ] Start by measuring flourescence on standard plate by setting the gain to automatic (Ex=480nm, Em=530nm).
 - [ ] Copy the gain setting and flourescence values to the Picogreen tab of TrackingSheet.xlsx
 - [ ] Repeat measurement on full sample plate being sure to set gain to match the standard plate.
 - [ ] Copy and paste results into Picogreen template as per **Figure 1**.
+- [ ] Manually edit the value in C140 to the desired ng of DNA to withdrow from each sample. Select a value such that most samples end up having less than 20 ul of volume withdrawn and pooled. For those that have more than 20 ul, manually edit these to the max volume to draw up.
 - [ ] Move to Loading.csv tab, and click File > Save As > File Format: CSV UTF-8
 - [ ] Remove lines which do not have a loading volume from the resulting csv file
 - [ ] Download a copy of ot2_scripts/4_PoolEquimolar_template.py and copy and paste the pooling volumes from the CSV file into the python (.py) script.
