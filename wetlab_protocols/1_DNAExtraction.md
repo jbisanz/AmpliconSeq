@@ -6,43 +6,48 @@ Ideally we want a high-throughput extraction method that is scalable and would a
 *Note: Before starting, ensure you have all reagents. Non-communical reagents are indicated below.*
 
 ## Materials
-- [ ] ZymoBIOMICS 96 MagBead DNA Kit (Zymo D4302 OR D4308) - **order your own**
+- [ ] ZymoBIOMICS 96 MagBead DNA Kit (D4308)
 - [ ] ZymoBIOMICS Community Standard (Zymo D6300) 
-- [ ] USA Scientific 96 Deep Well Plate 2.4 mL (USA Scientific 1896-2000) 
+- [ ] VWR Deep Well Plate (75870-796)
+- [ ] Magnetic Capture Stand (Zymo ZR-96)
 - [ ] Bio-Rad 96 Well Plate 200 µL skirted PCR plate  (Biorad hsp9601) 
-- [ ] Beta Mercaptoethanol (BioRad 1610710) 
 - [ ] 1000µL tips (USA scientific 1122-1730)
-- [ ] Biospec Mini-Beadbeater-96 or similar*
-- [ ] Opentrons OT-2 with gen 2 Magnetic module, 1000ul single channel, and 300ul multichannel.
-- [ ] 3 x Agilent 1 well 290 mL reservoirs (Agilent 201252-100)
-- [ ] 1 x USA Scientific 12 Well Reservoir 22 mL (USA Scientific 1061-8150) 
-- [ ] 1 x Opentrons filter 200ul tips (https://shop.opentrons.com/collections/opentrons-tips/products/opentrons-200ul-filter-tips)
-- [ ] 4 x Opentrons filter 1000ul tips (https://shop.opentrons.com/collections/opentrons-tips/products/opentrons-1000ul-filter-tips)
-<br>*Note: plates will not fit in tissuelyzer or MoBio options!*
+- [ ] Fast Prep 96 Or Equivalent (MPBio)
+- [ ] Eppendor Research Plus 8 channel (USA Scientific 4031-5206)
+- [ ] Analytical Scale (if sample weights are desired).
+
 
 ## Protocol
 *Location: Biological safety cabinet acceptable for BSL2 work should be used. Remember that samples, especially those from humans could contain a wide variety of pathogens and should be treated with universal caution. After extraction, all pathogens will have been deactivated and samples instead need to be protected from outside contamination*
-- [ ] Treat extraction area with UV ~15 minutes or 0.5% bleach.
-- [ ] Add 750 µL beta-mercaptoethanol to 150mL bottle of MagBinding Buffer  *(0.5% (v/v) i.e., 500 µl per 100 ml)*
-- [ ] Transfer ~50 mg or half fecal pellet, or 200µL liquid sample into lysing tube or plate.
-- [ ] Add 650 µL ZymoBIOMICS lysis solution if using lysing rack, add 750 µL if using individual tubes.
-- [ ] Disrupt for 5 minutes in Biospec beadbeater (be sure that it is completely tightened and put a folded up large kimwipe under the lid to keep pressure on the strip lids if using strips)
+- [ ] Treat extraction area with UV ~15 minutes and/or 0.5% bleach.
+- [ ] Weigh Empty Lysing Tube and tare scale (if using solid samples)
+- [ ] Transfer ~50 mg feces, or ~half mouse fecal pellet, or 200µL liquid sample into lysing tube.
+- [ ] Record weight of tube in Tracking_Sheet.xlsx
+- [ ] Add 750 µL ZymoBIOMICS lysis solution to lysing tube (650 µL if using lysing rack).
+- [ ] Disrupt for 1 minutes in FastPrep 96
 - [ ] Wait 5 minutes
-- [ ] repeat previous 2 steps 3 more times for a total of 20 minutes in minispec
-- [ ] Incubate at 65˚C for 10 min (optional for Gram +ve organisms or human samples, akin to EMP protocol).
-- [ ] Centrifuge 5 minutes at ~3000g.
+- [ ] repeat previous 2 steps for a total of 5 minutes bead beating.
+- [ ] Centrifuge 5 minutes at ~10,000 x g
 - [ ] Transfer 200 µL supernatant to 2 mL deep-well plate (BindingPlate).
-<br>*Note: optional stoping point before carrying on to automated cleanup
-- [ ] Step up OT-2 according to **Figure 1**.
-- [ ] Download ot2_scripts/1_ZymoMagWash.py and load into opentrons app. If not extracting entire plate, adjust line 18 (wells_to_extract).
-- [ ] Calibrate all deck positions
-- [ ] Run protocol. **Expected Run Time = XXXXXXXXXXXXX min**
-- [ ] Take gDNA forward for primary PCR
+- [ ] Add 600 µl MagBinding Buffer
+- [ ] Add 25 µL MagBinding Beads and mix by pipette
+- [ ] Transfer to magnetic stand and wait for supernatant to clear, discard supernatant
+- [ ] Add 500 µL MagBinding Buffer and mix by pipette
+- [ ] Transfer to magnetic stand and wait for supernatant to clear, discard supernatant
+- [ ] Add 500 µL MagWash 1 and mix by pipette
+- [ ] Transfer to magnetic stand and wait for supernatant to clear, discard supernatant
+- [ ] Add 900 µL MagWash 2 and mix by pipette
+- [ ] Transfer to magnetic stand and wait for supernatant to clear, discard supernatant
+- [ ] Add 900 µL MagWash 2 and mix by pipette
+- [ ] Transfer to magnetic stand and wait for supernatant to clear, discard supernatant
+- [ ] Add 900 µL MagWash 2 and mix by pipette
+- [ ] Transfer to magnetic stand and wait for supernatant to clear, discard supernatant
+- [ ] Air Dry 30 minutes (or 10 minutes on 55˚C heating element)
+- [ ] Add 50 µL DNase/RNase Free Water
+- [ ] Capture beads on magnetic stand
+- [ ] Transfer supernatant containing DNA to a new full skirted 96 well plate.
+- [ ] Store plate at <= -20˚C or proceed to 1˚ amplification.
 
 ## QC
-Spot check samples and negative controls using Nanodrop and/or Qubit. Successful (high biomass) samples should be >5ng/µL with a 260/280>1.6 and 260/230>1.4.  If the 260/230 is <1.4, Nanodrop quantification is not accurate and Qubit should be used instead. **Yield is not an indicator of evenness of extraction.**
-
-## Figures
-![Fig1](../images/zymolayout.png?)
-<br>**Figure 1.** OT-2 deck layout. Deck positions are sequentially numbered 1-11 from the bottom left to the top right. **Position 1 (BINDINGPLATE)***: 200ul supernatant in deep well plate ontop of magnetic binding module. ***Position 2 (OTHERS)***: 12 well reservoir, first column contains 5.5 mL magbeads, second column contains 10 mL H2O, third column contains 15 mL H2O. **Position 3 (ELUTIONPLATE)**: Empty 96 well biorad PCR plate to collect final DNA. **Positions 4-6**: contain 132 mL binding buffer, 110 mL Magwash 1, and 210mL Magwash 2 respectively. **Positions 7-9, 11**: 1000ul tips. **Position 10**: 200ul tips. 1000ul pipette on left, 200ul multichannel on right mount.
+Spot check samples and negative controls using Nanodrop and/or Qubit. Successful (high biomass) samples should be >10ng/µL with a 260/280>1.6 and 260/230>1.4.  If the 260/230 is <1.4, Nanodrop quantification is not accurate and Qubit should be used instead. **Yield is not an indicator of evenness of extraction.** 
 
